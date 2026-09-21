@@ -118,7 +118,7 @@ function GoldfishModel({ fish, index, total, selected, onSelect }: { fish: Three
   const palette = COLORS[fish.colorId];
   const phase = (fish.seed % 360) * (Math.PI / 180);
   const [homeX, homeY, homeZ] = SWIM_SPOTS[index % SWIM_SPOTS.length];
-  const densityScale = total >= 8 ? 0.44 : total >= 5 ? 0.5 : total >= 3 ? 0.62 : 0.76;
+  const densityScale = total >= 8 ? 0.34 : total >= 5 ? 0.4 : total >= 3 ? 0.5 : 0.62;
 
   useFrame(({ clock }) => {
     const item = group.current;
