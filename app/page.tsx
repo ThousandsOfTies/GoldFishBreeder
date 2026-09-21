@@ -836,7 +836,7 @@ export default function HomePage() {
 
         {breedPhase === "result" && birthSummary ? (
           <div className="birth-result">
-            <div className="sparkle-ring"><Sparkles /><GoldfishCanvas shapeId={birthSummary.fish.shapeId} colorId={birthSummary.fish.colorId} /></div>
+            <div className="sparkle-ring"><Sparkles /><GoldfishPreview3D fish={birthSummary.fish} /></div>
             <p className="eyebrow">{birthSummary.isNewSpecies ? "しんしゅ はっけん！" : `${birthSummary.speciesNumber}ひきめ！`}</p>
             <h2>{birthSummary.speciesName}</h2>
             <p>{placeName(birthSummary.destination)}へ はいりました。</p>
@@ -851,12 +851,12 @@ export default function HomePage() {
             <div className={`breeding-board ${breedPhase === "mixing" ? "is-mixing" : ""}`}>
               <button type="button" className={`parent-slot ${pickerSlot === "shape" ? "active" : ""}`} onClick={() => setPickerSlot("shape")}>
                 <span className="slot-label">① おや金魚</span>
-                {shapeParent ? <><GoldfishCanvas shapeId={shapeParent.shapeId} colorId={shapeParent.colorId} /><strong>{displayName(shapeParent)}</strong><small>{visibleTraits(shapeParent).slice(0, 3).join("・")}</small></> : <><span className="slot-plus"><Plus /></span><strong>えらぶ</strong></>}
+                {shapeParent ? <><GoldfishPreview3D fish={shapeParent} /><strong>{displayName(shapeParent)}</strong><small>{visibleTraits(shapeParent).slice(0, 3).join("・")}</small></> : <><span className="slot-plus"><Plus /></span><strong>えらぶ</strong></>}
               </button>
               <div className="inherit-arrow"><ArrowRight /><span>かけあわせ</span></div>
               <button type="button" className={`parent-slot ${pickerSlot === "color" ? "active" : ""}`} onClick={() => setPickerSlot("color")}>
                 <span className="slot-label">② おや金魚</span>
-                {colorParent ? <><GoldfishCanvas shapeId={colorParent.shapeId} colorId={colorParent.colorId} /><strong>{displayName(colorParent)}</strong><small>{visibleTraits(colorParent).slice(0, 3).join("・")}</small></> : <><span className="slot-plus"><Plus /></span><strong>えらぶ</strong></>}
+                {colorParent ? <><GoldfishPreview3D fish={colorParent} /><strong>{displayName(colorParent)}</strong><small>{visibleTraits(colorParent).slice(0, 3).join("・")}</small></> : <><span className="slot-plus"><Plus /></span><strong>えらぶ</strong></>}
               </button>
               <div className="equals-mark">＝</div>
               <div className="child-preview">

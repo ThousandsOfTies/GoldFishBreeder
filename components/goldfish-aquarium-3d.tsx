@@ -236,7 +236,7 @@ function GoldfishModel({ fish, index, total, onSelect, swimmers, preview = false
     if (item) {
       const time = clock.getElapsedTime() + phase;
       if (preview) {
-        item.position.set(0, Math.sin(time * 1.8) * 0.05, 0);
+        item.position.set(Math.sin(time * 0.72) * 0.12, Math.sin(time * 1.8) * 0.05, 0);
         item.scale.set(0.8, 0.8, 0.8);
         item.rotation.z = Math.sin(time * 1.8) * 0.025;
       } else {
