@@ -808,7 +808,14 @@ export default function HomePage() {
 
   const renderAquarium = () => (
     <section className="game-stage">
-      <div ref={aquariumRef} className={`aquarium ${viewingMode ? "is-viewing" : ""}`} aria-label={`${game.tankNames[game.activeTank]}。${activeTankFish.length}匹の金魚が泳いでいます`}>
+      <div
+        ref={aquariumRef}
+        className={`aquarium ${viewingMode ? "is-viewing" : ""}`}
+        style={{
+          backgroundImage: `linear-gradient(rgba(1, 35, 50, 0.05), rgba(1, 23, 35, 0.18)), url("${import.meta.env.BASE_URL}aquarium-bg-${game.activeTank}.png")`,
+        }}
+        aria-label={`${game.tankNames[game.activeTank]}。${activeTankFish.length}匹の金魚が泳いでいます`}
+      >
         <div className="water-glow" />
         {activeTankFish.length > 0 && <GoldfishAquarium3D fish={activeTankFish} onSelect={setSelectedFishId} />}
         {activeTankFish.length > 0 && <div className="three-aquarium-hint">金魚を クリックしてみよう</div>}
@@ -976,7 +983,12 @@ export default function HomePage() {
           return (
             <button type="button" className={`tank-card ${game.activeTank === tank ? "current" : ""}`} key={tank} onClick={() => goToTank(tank)}>
               {game.activeTank === tank && <span className="current-badge">いまの水槽</span>}
-              <div className="tank-miniature">
+              <div
+                className="tank-miniature"
+                style={{
+                  backgroundImage: `linear-gradient(rgba(2, 35, 46, 0.23), rgba(2, 26, 37, 0.2)), url("${import.meta.env.BASE_URL}aquarium-bg-${tank}.png")`,
+                }}
+              >
                 {residents.slice(0, 4).map((fish) => <GoldfishCanvas key={fish.id} shapeId={fish.shapeId} colorId={fish.colorId} />)}
                 {residents.length === 0 && <Waves />}
               </div>

@@ -42,13 +42,16 @@ for (const filename of cssFiles) {
   const css = await readFile(cssFile, "utf8");
   for (const match of css.matchAll(/url\(\s*(['"]?)(.*?)\1\s*\)/g)) {
     const reference = match[2];
-    if (reference.endsWith("aquarium-bg.png")) aquariumReferences += 1;
+    if (reference.endsWith("aquarium-bg-0.png")) aquariumReferences += 1;
     await checkAsset(reference, cssFile);
   }
 }
-assert(aquariumReferences >= 2, "Missing aquarium and tank-thumbnail backgrounds");
+assert(aquariumReferences >= 1, "Missing fallback aquarium background");
 
-for (const filename of ["aquarium-bg.png", "favicon.svg"]) {
+for (const filename of [
+  ...Array.from({ length: 10 }, (_, index) => `aquarium-bg-${index}.png`),
+  "favicon.svg",
+]) {
   const original = await readFile(path.join(projectDir, "public", filename));
   const copied = await readFile(path.join(outputDir, filename));
   assert(original.equals(copied), `Public asset was not copied correctly: ${filename}`);
