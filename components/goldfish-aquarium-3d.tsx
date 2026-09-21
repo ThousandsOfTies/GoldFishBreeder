@@ -54,6 +54,9 @@ const COLORS: Record<GoldfishColorId, ColorStyle> = {
   lavender: { base: "#8b78a9", accent: "#efe5f6", pattern: "cloud" },
 };
 
+// 最初からいる出目金は、模様なしの黒出目金にする。
+const BLACK_DEMEKIN: ColorStyle = { base: "#070a0c", accent: "#070a0c", pattern: "plain" };
+
 const tailShape = new THREE.Shape();
 tailShape.moveTo(0.08, 0.18);
 tailShape.quadraticCurveTo(-0.55, 0.95, -1.12, 0.72);
@@ -195,7 +198,7 @@ function GoldfishModel({ fish, index, total, selected, onSelect, swimmers }: { f
   const fins = useRef<THREE.Group>(null);
   const swim = useRef<SwimState | null>(null);
   const style = SHAPES[fish.shapeId];
-  const palette = COLORS[fish.colorId];
+  const palette = fish.shapeId === "demekin" && fish.colorId === "sumi" ? BLACK_DEMEKIN : COLORS[fish.colorId];
   const phase = (fish.seed % 360) * (Math.PI / 180);
   const densityScale = total >= 8 ? 0.34 : total >= 5 ? 0.4 : total >= 3 ? 0.5 : 0.62;
   const personalSpace = densityScale * (style.tailStyle ? 1.42 : style.body[0] > 1.5 ? 1.28 : 1.12);

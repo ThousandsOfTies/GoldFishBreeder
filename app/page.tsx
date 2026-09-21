@@ -130,6 +130,13 @@ const COLORS: Record<ColorId, { label: string; short: string; colors: [string, s
   lavender: { label: "ラベンダー", short: "らべん", colors: ["#8b78a9", "#efe5f6"], pattern: "cloud" },
 };
 
+const BLACK_DEMEKIN_PALETTE: { label: string; short: string; colors: [string, string]; pattern: PatternId } = {
+  label: "くろ", short: "くろ", colors: ["#070a0c", "#070a0c"], pattern: "plain",
+};
+
+const colorLabelFor = (fish: Pick<FishRecord, "shapeId" | "colorId">) =>
+  fish.shapeId === "demekin" && fish.colorId === "sumi" ? "くろ" : COLORS[fish.colorId].label;
+
 const BASE_PARENTS: { shapeId: ShapeId; colorId: ColorId; name: string; unlockAt: number }[] = [
   { shapeId: "wakin", colorId: "beni", name: "わきん", unlockAt: 0 },
   { shapeId: "ryukin", colorId: "sakura", name: "りゅうきん", unlockAt: 0 },
@@ -298,7 +305,7 @@ function GoldfishCanvas({ shapeId, colorId, className = "" }: { shapeId: ShapeId
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const shape = SHAPES[shapeId];
-    const palette = COLORS[colorId];
+    const palette = shapeId === "demekin" && colorId === "sumi" ? BLACK_DEMEKIN_PALETTE : COLORS[colorId];
     const scale = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = 180 * scale;
     canvas.height = 100 * scale;
@@ -465,7 +472,7 @@ export default function HomePage() {
               id: fish.id,
               name: game.speciesNames[speciesKey(fish.shapeId, fish.colorId)] ?? "なまえのない金魚",
               shape: SHAPES[fish.shapeId].label,
-              colorAndPattern: COLORS[fish.colorId].label,
+              colorAndPattern: colorLabelFor(fish),
               location: fish.tank === "rest" ? "おやすみ池" : game.tankNames[fish.tank],
             })),
           }),
@@ -785,7 +792,7 @@ export default function HomePage() {
             <p className="species-label">{game.fish.filter((fish) => speciesKey(fish.shapeId, fish.colorId) === speciesKey(selectedFish.shapeId, selectedFish.colorId)).length}ひき いるよ</p>
             <dl>
               <div><dt>かたち</dt><dd>{SHAPES[selectedFish.shapeId].label}</dd></div>
-              <div><dt>いろ・もよう</dt><dd>{COLORS[selectedFish.colorId].label}</dd></div>
+              <div><dt>いろ・もよう</dt><dd>{colorLabelFor(selectedFish)}</dd></div>
               <div><dt>見える形質</dt><dd className="traits-value">{visibleTraits(selectedFish).slice(1).join("・")}</dd></div>
               <div><dt>うまれた日</dt><dd>{selectedFish.bornAt ? new Intl.DateTimeFormat("ja-JP", { month: "numeric", day: "numeric" }).format(selectedFish.bornAt) : "さいしょから"}</dd></div>
             </dl>
