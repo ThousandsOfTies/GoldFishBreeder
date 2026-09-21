@@ -219,6 +219,38 @@ function visibleTraits(fish: FishRecord) {
   return traits;
 }
 
+function alleleChance<T,>(pair: [T, T], allele: T) {
+  return pair.filter((item) => item === allele).length / 2;
+}
+
+function doubleTraitChance(first: FishRecord, second: FishRecord, trait: keyof Pick<FishGenome, "telescope" | "dorsal" | "hood" | "pearlScales">, allele: OnOffAllele) {
+  return alleleChance(genomeFor(first)[trait], allele) * alleleChance(genomeFor(second)[trait], allele);
+}
+
+function forecastTraits(first: FishRecord, second: FishRecord) {
+  const a = genomeFor(first);
+  const b = genomeFor(second);
+  const row = (label: string, chance: number): [string, number] => [label, chance];
+  const predictions = [
+    row("出目", doubleTraitChance(first, second, "telescope", "on")),
+    row("背びれなし", doubleTraitChance(first, second, "dorsal", "off")),
+    row("肉瘤あり", doubleTraitChance(first, second, "hood", "on")),
+    row("パール鱗", doubleTraitChance(first, second, "pearlScales", "on")),
+    row("玉型", alleleChance(a.body, "round") * alleleChance(b.body, "round")),
+    row("琉金型", alleleChance(a.body, "tall") * alleleChance(b.body, "tall")),
+    row("蝶尾", alleleChance(a.tail, "butterfly") * alleleChance(b.tail, "butterfly")),
+    row("長い尾", alleleChance(a.tail, "long") * alleleChance(b.tail, "long")),
+  ].filter(([, chance]) => chance > 0);
+
+  const colors = new Map<ColorId, number>();
+  for (const parentColor of a.color) for (const otherColor of b.color) {
+    colors.set(parentColor, (colors.get(parentColor) ?? 0) + 0.25);
+    colors.set(otherColor, (colors.get(otherColor) ?? 0) + 0.25);
+  }
+  const colorPredictions = [...colors.entries()].map(([color, chance]) => [COLORS[color].label, chance / 2] as [string, number]);
+  return { predictions, colorPredictions };
+}
+
 const initialGame = (): GameState => ({
   version: 2,
   fish: [
@@ -759,6 +791,7 @@ export default function HomePage() {
   );
 
   const renderBreed = () => {
+    const forecast = shapeParent && colorParent ? forecastTraits(shapeParent, colorParent) : null;
     return (
       <section className="workspace breed-workspace">
         <div className="workspace-heading">
@@ -807,6 +840,14 @@ export default function HomePage() {
             {shapeParent && colorParent && <div className="inheritance-explainer">
               <Sparkles size={18} /><div><strong>今回のルール</strong><span>からだ・尾・目・背びれ・肉瘤・うろこ・色は、それぞれのおやから遺伝子を1つずつ受け取ります。2つそろうと出やすい形質もあります。</span></div>
             </div>}
+
+            {forecast && <section className="trait-forecast" aria-label="この交配で生まれる形質の予想">
+              <div><p className="eyebrow">かけあわせ前の よそう</p><h3>どんな形質が 出るかな？</h3></div>
+              <div className="forecast-chips">
+                {forecast.predictions.length > 0 ? forecast.predictions.map(([label, chance]) => <span key={label}><strong>{label}</strong><em>{Math.round(chance * 100)}%</em></span>) : <span><strong>基本形質</strong><em>出やすい</em></span>}
+              </div>
+              <p className="forecast-colors">色の候補：{forecast.colorPredictions.map(([label, chance]) => `${label} ${Math.round(chance * 100)}%`).join(" ／ ")}</p>
+            </section>}
 
             <div className="parent-picker">
               <div className="picker-heading"><div><span>{pickerSlot === "shape" ? "①" : "②"}</span><h3>{pickerSlot === "shape" ? "1ひめの おやを えらぶ" : "2ひめの おやを えらぶ"}</h3></div><small>金魚を クリックしてね</small></div>

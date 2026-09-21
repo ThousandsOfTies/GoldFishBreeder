@@ -108,6 +108,13 @@ button { font: inherit; }
 .inheritance-explainer svg { flex: 0 0 auto; color: #ffe18c; margin-top: 2px; }
 .inheritance-explainer strong, .inheritance-explainer span { display: block; }
 .inheritance-explainer strong { color: #fff6d4; }
+.trait-forecast { max-width: 900px; margin: 0 auto 23px; padding: 16px 18px; border: 1px solid rgba(255, 219, 139, .24); border-radius: 18px 8px 18px 8px; background: linear-gradient(120deg, rgba(96, 70, 31, .28), rgba(7, 50, 60, .48)); }
+.trait-forecast h3 { margin: 3px 0 12px; color: #fff3cb; font-size: 1.08rem; }
+.forecast-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.forecast-chips span { display: inline-flex; overflow: hidden; border: 1px solid rgba(255, 230, 166, .2); border-radius: 99px; background: rgba(5, 39, 47, .52); }
+.forecast-chips strong { padding: 5px 9px; color: #d8f8f3; font-size: .79rem; }
+.forecast-chips em { padding: 5px 9px; color: #4b3007; background: #ffe29a; font-size: .79rem; font-style: normal; font-weight: 900; }
+.forecast-colors { margin: 11px 0 0; color: #abced1; font-size: .78rem; line-height: 1.6; }
 .breeding-board { position: relative; display: grid; grid-template-columns: minmax(180px, 1fr) 95px minmax(180px, 1fr) 55px minmax(180px, 1fr); align-items: stretch; gap: 12px; max-width: 1120px; margin: 0 auto; }
 .parent-slot, .child-preview { min-height: 230px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 28px 18px 18px; color: #eefcfb; border: 1px solid rgba(179, 239, 233, .18); border-radius: 22px 9px 22px 9px; background: linear-gradient(155deg, rgba(27, 78, 90, .82), rgba(7, 41, 54, .9)); }
 .parent-slot { cursor: pointer; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
