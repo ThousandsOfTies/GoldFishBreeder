@@ -108,10 +108,10 @@ declare global {
   }
 }
 
-const SHAPES: Record<ShapeId, { label: string; short: string; rx: number; ry: number; tail: number; special?: "telescope" | "cap" | "ranchu" | "pearl" | "butterfly" }> = {
+const SHAPES: Record<ShapeId, { label: string; short: string; rx: number; ry: number; tail: number; special?: "telescope" | "cap" | "ranchu" | "pearl" | "butterfly" | "ryukin" }> = {
   wakin: { label: "わきん", short: "すらり", rx: 49, ry: 24, tail: 0.95 },
-  ryukin: { label: "りゅうきん", short: "まる", rx: 42, ry: 34, tail: 1.1 },
-  demekin: { label: "でめきん", short: "でめ", rx: 44, ry: 29, tail: 1.05, special: "telescope" },
+  ryukin: { label: "りゅうきん", short: "ひしがた", rx: 42, ry: 34, tail: 1.1, special: "ryukin" },
+  demekin: { label: "でめきん", short: "でめ", rx: 35, ry: 23, tail: 0.94, special: "telescope" },
   oranda: { label: "オランダ", short: "ふわ", rx: 43, ry: 31, tail: 1.12, special: "cap" },
   ranchu: { label: "らんちゅう", short: "ころ", rx: 44, ry: 31, tail: 0.92, special: "ranchu" },
   comet: { label: "コメット", short: "ながれ", rx: 50, ry: 22, tail: 1.42 },
@@ -309,6 +309,20 @@ function GoldfishCanvas({ shapeId, colorId, className = "" }: { shapeId: ShapeId
     const bodyY = shape.special === "ranchu" ? 53 : 49;
     const tailRoot = bodyX - shape.rx + 7;
     const tailReach = 34 * shape.tail;
+    const drawBodyPath = () => {
+      ctx.beginPath();
+      if (shape.special === "ryukin") {
+        // 上の頂点を少し後ろへ、下の頂点を少し前へずらした、丸みのあるひし形。
+        ctx.moveTo(bodyX - shape.rx, bodyY);
+        ctx.quadraticCurveTo(bodyX - 29, bodyY - 30, bodyX - 12, bodyY - shape.ry - 2);
+        ctx.quadraticCurveTo(bodyX + 19, bodyY - shape.ry + 2, bodyX + shape.rx, bodyY - 4);
+        ctx.quadraticCurveTo(bodyX + 29, bodyY + 25, bodyX + 12, bodyY + shape.ry);
+        ctx.quadraticCurveTo(bodyX - 20, bodyY + shape.ry - 5, bodyX - shape.rx, bodyY);
+        ctx.closePath();
+      } else {
+        ctx.ellipse(bodyX, bodyY, shape.rx, shape.ry, shape.special === "ranchu" ? -0.08 : 0, 0, Math.PI * 2);
+      }
+    };
 
     const tailGradient = ctx.createLinearGradient(12, 18, 60, 82);
     tailGradient.addColorStop(0, `${palette.colors[0]}e8`);
@@ -342,13 +356,11 @@ function GoldfishCanvas({ shapeId, colorId, className = "" }: { shapeId: ShapeId
     bodyGradient.addColorStop(0.68, palette.colors[0]);
     bodyGradient.addColorStop(1, "#592822");
     ctx.fillStyle = bodyGradient;
-    ctx.beginPath();
-    ctx.ellipse(bodyX, bodyY, shape.rx, shape.ry, shape.special === "ranchu" ? -0.08 : 0, 0, Math.PI * 2);
+    drawBodyPath();
     ctx.fill();
 
     ctx.save();
-    ctx.beginPath();
-    ctx.ellipse(bodyX, bodyY, shape.rx, shape.ry, 0, 0, Math.PI * 2);
+    drawBodyPath();
     ctx.clip();
     ctx.fillStyle = `${palette.colors[1]}ee`;
     if (palette.pattern === "patch" || palette.pattern === "cloud") {
@@ -380,17 +392,16 @@ function GoldfishCanvas({ shapeId, colorId, className = "" }: { shapeId: ShapeId
     }
 
     ctx.strokeStyle = "rgba(255,255,255,.34)"; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.ellipse(bodyX, bodyY, shape.rx - 1, shape.ry - 1, 0, 0, Math.PI * 2); ctx.stroke();
+    drawBodyPath(); ctx.stroke();
 
     ctx.fillStyle = "rgba(255,255,255,.55)";
     ctx.beginPath(); ctx.ellipse(bodyX + 8, bodyY + shape.ry - 2, 22, 8, 0.4, 0, Math.PI * 2); ctx.fill();
 
     const eyeX = bodyX + shape.rx - 8;
     if (shape.special === "telescope") {
-      ctx.fillStyle = palette.colors[0]; ctx.beginPath(); ctx.arc(eyeX - 1, bodyY - 10, 11, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = palette.colors[0]; ctx.beginPath(); ctx.arc(eyeX - 1, bodyY - 10, 10, 0, Math.PI * 2); ctx.fill();
     }
-    ctx.fillStyle = "#111a1e"; ctx.beginPath(); ctx.arc(eyeX, bodyY - 10, 4.6, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(eyeX - 1.5, bodyY - 12, 1.4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#111a1e"; ctx.beginPath(); ctx.arc(eyeX, bodyY - 10, shape.special === "telescope" ? 7 : 4.6, 0, Math.PI * 2); ctx.fill();
   }, [shapeId, colorId]);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" />;

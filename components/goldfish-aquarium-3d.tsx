@@ -16,6 +16,7 @@ export type ThreeGoldfish = {
 
 type ShapeStyle = {
   body: [number, number, number];
+  bodyStyle?: "ryukin";
   tail: [number, number];
   dorsal: boolean;
   eyes: "normal" | "telescope";
@@ -33,8 +34,8 @@ type ColorStyle = {
 
 const SHAPES: Record<GoldfishShapeId, ShapeStyle> = {
   wakin: { body: [1.55, 0.72, 0.58], tail: [0.8, 0.86], dorsal: true, eyes: "normal" },
-  ryukin: { body: [1.2, 1.04, 0.78], tail: [0.95, 1.02], dorsal: true, eyes: "normal" },
-  demekin: { body: [1.3, 0.84, 0.66], tail: [0.92, 0.98], dorsal: true, eyes: "telescope" },
+  ryukin: { body: [1.18, 1.06, 0.75], bodyStyle: "ryukin", tail: [0.95, 1.02], dorsal: true, eyes: "normal" },
+  demekin: { body: [1.04, 0.68, 0.54], tail: [0.82, 0.9], dorsal: true, eyes: "telescope" },
   oranda: { body: [1.25, 0.95, 0.7], tail: [0.95, 1.05], dorsal: true, eyes: "normal", hood: true },
   ranchu: { body: [1.28, 0.9, 0.72], tail: [0.76, 0.82], dorsal: false, eyes: "normal" },
   comet: { body: [1.68, 0.66, 0.53], tail: [1.4, 0.78], dorsal: true, eyes: "normal", tailStyle: "long" },
@@ -60,6 +61,26 @@ tailShape.quadraticCurveTo(-0.9, 0.2, -1.32, 0);
 tailShape.quadraticCurveTo(-0.9, -0.2, -1.12, -0.72);
 tailShape.quadraticCurveTo(-0.55, -0.95, 0.08, -0.18);
 tailShape.closePath();
+
+// 琉金は背中の高い、ややひし形の胴。上の頂点を後ろ、下の頂点を前にずらす。
+const ryukinBodyGeometry = new THREE.SphereGeometry(1, 28, 18);
+const ryukinPositions = ryukinBodyGeometry.getAttribute("position");
+for (let index = 0; index < ryukinPositions.count; index += 1) {
+  const x = ryukinPositions.getX(index);
+  const y = ryukinPositions.getY(index);
+  const z = ryukinPositions.getZ(index);
+  const top = Math.max(y, 0);
+  const bottom = Math.max(-y, 0);
+  // 丸みを失わずに、上の頂点は後ろ、下の頂点は前へ寄せる。
+  const taper = 1 - 0.58 * Math.pow(Math.abs(y), 1.25);
+  ryukinPositions.setXYZ(
+    index,
+    x * taper - 0.3 * Math.pow(top, 1.5) + 0.22 * Math.pow(bottom, 1.5),
+    y * (1 + 0.12 * Math.abs(y)),
+    z * (1 - 0.12 * Math.abs(y)),
+  );
+}
+ryukinBodyGeometry.computeVertexNormals();
 
 function PalettePattern({ style, body }: { style: ColorStyle; body: ShapeStyle["body"] }) {
   const front = body[2] + 0.04;
@@ -227,7 +248,7 @@ function GoldfishModel({ fish, index, total, selected, onSelect, swimmers }: { f
     if (fins.current) fins.current.rotation.z = Math.sin(clock.getElapsedTime() * 4.5 + phase) * 0.14;
   });
 
-  const eyeSize = style.eyes === "telescope" ? 0.27 : 0.17;
+  const eyeSize = style.eyes === "telescope" ? 0.34 : 0.17;
   const eyeX = style.body[0] * 0.68;
   const eyeY = style.body[1] * 0.18;
   const eyeZ = style.body[2] * 0.91;
@@ -237,7 +258,7 @@ function GoldfishModel({ fish, index, total, selected, onSelect, swimmers }: { f
     <group ref={group} onClick={() => onSelect(fish.id)}>
       <group scale={selected ? 1.08 : 1}>
         <mesh scale={style.body} castShadow receiveShadow>
-          <sphereGeometry args={[1, 28, 18]} />
+          {style.bodyStyle === "ryukin" ? <primitive object={ryukinBodyGeometry} attach="geometry" /> : <sphereGeometry args={[1, 28, 18]} />}
           <meshPhysicalMaterial color={palette.base} roughness={0.36} metalness={0.04} clearcoat={0.72} clearcoatRoughness={0.26} emissive={highlight} emissiveIntensity={selected ? 0.16 : 0} />
         </mesh>
         <mesh position={[style.body[0] * 0.14, style.body[1] * 0.36, style.body[2] * 0.86]} scale={[0.32, 0.16, 0.025]}>
@@ -283,21 +304,13 @@ function GoldfishModel({ fish, index, total, selected, onSelect, swimmers }: { f
           ))}
         </group>}
 
-        {style.eyes === "telescope" && <mesh position={[eyeX, eyeY, eyeZ * 0.82]} scale={[eyeSize * 1.35, eyeSize * 1.35, eyeSize * 1.12]}>
+        {style.eyes === "telescope" && <mesh position={[eyeX, eyeY, eyeZ * 0.82]} scale={[eyeSize * 1.28, eyeSize * 1.28, eyeSize * 1.08]}>
           <sphereGeometry args={[1, 16, 12]} />
           <meshPhysicalMaterial color={palette.base} roughness={0.34} clearcoat={0.58} />
         </mesh>}
-        <mesh position={[eyeX, eyeY, eyeZ]} scale={[eyeSize, eyeSize, eyeSize * 0.48]}>
+        <mesh position={[eyeX, eyeY, eyeZ]} scale={[eyeSize, eyeSize, eyeSize * 0.72]}>
           <sphereGeometry args={[1, 16, 12]} />
-          <meshStandardMaterial color="#fffdf0" roughness={0.26} />
-        </mesh>
-        <mesh position={[eyeX + eyeSize * 0.12, eyeY, eyeZ * 1.1]} scale={[eyeSize * 0.53, eyeSize * 0.53, eyeSize * 0.18]}>
-          <sphereGeometry args={[1, 14, 10]} />
-          <meshStandardMaterial color="#10191c" roughness={0.22} />
-        </mesh>
-        <mesh position={[eyeX + eyeSize * 0.01, eyeY + eyeSize * 0.16, eyeZ * 1.19]} scale={[eyeSize * 0.14, eyeSize * 0.14, eyeSize * 0.05]}>
-          <sphereGeometry args={[1, 12, 8]} />
-          <meshBasicMaterial color="#ffffff" />
+          <meshPhysicalMaterial color="#10191c" roughness={0.18} clearcoat={0.7} clearcoatRoughness={0.12} />
         </mesh>
         <mesh position={[eyeX - eyeSize * 0.38, eyeY - eyeSize * 0.7, eyeZ * 1.02]} scale={[0.11, 0.065, 0.02]}>
           <circleGeometry args={[1, 16]} />
