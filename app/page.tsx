@@ -18,6 +18,7 @@ import {
   Sparkles,
   Upload,
   Waves,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -464,6 +465,7 @@ export default function HomePage() {
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [viewingMode, setViewingMode] = useState(false);
   const [backupOpen, setBackupOpen] = useState(false);
+  const [deleteFishId, setDeleteFishId] = useState<string | null>(null);
   const aquariumRef = useRef<HTMLDivElement>(null);
   const backupInputRef = useRef<HTMLInputElement>(null);
 
@@ -701,6 +703,19 @@ export default function HomePage() {
     toast.success(`${displayName(selectedFish)}を ${placeName(destination)}へ おひっこししました`);
   };
 
+  const removeFish = () => {
+    const fish = game.fish.find((item) => item.id === deleteFishId);
+    if (!fish) return;
+    const nextSelected = game.fish.find((item) => item.id !== fish.id && item.tank === fish.tank)
+      ?? game.fish.find((item) => item.id !== fish.id);
+    setGame((current) => ({ ...current, fish: current.fish.filter((item) => item.id !== fish.id) }));
+    if (selectedFishId === fish.id) setSelectedFishId(nextSelected?.id ?? "");
+    if (shapeParentId === fish.id) setShapeParentId(null);
+    if (colorParentId === fish.id) setColorParentId(null);
+    setDeleteFishId(null);
+    toast.success(`${displayName(fish)}を 水族館から おわかれしました`);
+  };
+
   const renameTank = (event: FormEvent) => {
     event.preventDefault();
     const name = tankNameDraft.trim();
@@ -798,7 +813,10 @@ export default function HomePage() {
         {activeTankFish.length > 0 && <GoldfishAquarium3D fish={activeTankFish} onSelect={setSelectedFishId} />}
         {activeTankFish.length > 0 && <div className="three-aquarium-hint">金魚を クリックしてみよう</div>}
         {activeTankFish.length > 0 && <div className="three-fish-picker" aria-label="水槽の金魚をえらぶ">
-          {activeTankFish.map((fish) => <button type="button" key={fish.id} className={selectedFish?.id === fish.id ? "is-selected" : ""} onClick={() => setSelectedFishId(fish.id)}>{displayName(fish)}</button>)}
+          {activeTankFish.map((fish) => <div className="fish-list-item" key={fish.id}>
+            <button type="button" className={selectedFish?.id === fish.id ? "is-selected" : ""} onClick={() => setSelectedFishId(fish.id)}>{displayName(fish)}</button>
+            <button type="button" className="fish-delete-button" aria-label={`${displayName(fish)}を消す`} title={`${displayName(fish)}を消す`} onClick={() => setDeleteFishId(fish.id)}><X /></button>
+          </div>)}
         </div>}
         {activeTankFish.length === 0 && (
           <div className="empty-tank">
@@ -1025,6 +1043,16 @@ export default function HomePage() {
             })}
             <button type="button" className="rest-destination" disabled={selectedFish?.tank === "rest"} onClick={() => moveSelectedFish("rest")}><span><Waves /></span><strong>おやすみ池</strong><small>いつでも もどせるよ</small></button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteFishId !== null} onOpenChange={(open) => { if (!open) setDeleteFishId(null); }}>
+        <DialogContent className="game-dialog delete-dialog">
+          <DialogHeader><DialogTitle>金魚と おわかれする？</DialogTitle><DialogDescription>{deleteFishId ? displayName(game.fish.find((fish) => fish.id === deleteFishId) ?? selectedFish) : "この金魚"}を水族館から消します。元には戻せません。</DialogDescription></DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteFishId(null)}>やめる</Button>
+            <Button variant="destructive" onClick={removeFish}><X />おわかれする</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
