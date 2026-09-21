@@ -113,6 +113,7 @@ const SWIM_SPOTS: Array<[number, number, number]> = [
 function GoldfishModel({ fish, index, total, selected, onSelect }: { fish: ThreeGoldfish; index: number; total: number; selected: boolean; onSelect: (id: string) => void }) {
   const group = useRef<THREE.Group>(null);
   const tail = useRef<THREE.Group>(null);
+  const fins = useRef<THREE.Group>(null);
   const style = SHAPES[fish.shapeId];
   const palette = COLORS[fish.colorId];
   const phase = (fish.seed % 360) * (Math.PI / 180);
@@ -130,10 +131,13 @@ function GoldfishModel({ fish, index, total, selected, onSelect }: { fish: Three
       item.rotation.y = 0;
     }
     if (tail.current) tail.current.rotation.z = Math.sin(clock.getElapsedTime() * 5.2 + phase) * 0.18;
+    if (fins.current) fins.current.rotation.z = Math.sin(clock.getElapsedTime() * 4.5 + phase) * 0.12;
   });
 
-  const eyeSize = style.eyes === "telescope" ? 0.24 : 0.11;
+  const eyeSize = style.eyes === "telescope" ? 0.27 : 0.17;
   const eyeX = style.body[0] * 0.68;
+  const eyeY = style.body[1] * 0.18;
+  const eyeZ = style.body[2] * 0.91;
   const highlight = selected ? "#ffe28a" : "#000000";
 
   return (
@@ -142,6 +146,10 @@ function GoldfishModel({ fish, index, total, selected, onSelect }: { fish: Three
         <mesh scale={style.body} castShadow receiveShadow>
           <sphereGeometry args={[1, 28, 18]} />
           <meshPhysicalMaterial color={palette.base} roughness={0.36} metalness={0.04} clearcoat={0.72} clearcoatRoughness={0.26} emissive={highlight} emissiveIntensity={selected ? 0.16 : 0} />
+        </mesh>
+        <mesh position={[style.body[0] * 0.14, style.body[1] * 0.36, style.body[2] * 0.86]} scale={[0.32, 0.16, 0.025]}>
+          <sphereGeometry args={[1, 16, 10]} />
+          <meshBasicMaterial color="#fffdf0" transparent opacity={0.42} />
         </mesh>
         <PalettePattern style={palette} body={style.body} />
         {style.pearlScales && <PearlScales body={style.body} />}
@@ -157,15 +165,21 @@ function GoldfishModel({ fish, index, total, selected, onSelect }: { fish: Three
           </mesh>}
         </group>
 
-        {style.dorsal && <mesh position={[-0.08, style.body[1] * 0.92, 0]} rotation={[0, 0, 0.3]}>
-          <coneGeometry args={[0.23, 0.58, 3]} />
+        {style.dorsal && <mesh position={[-0.08, style.body[1] * 0.92, 0]} scale={[0.2, 0.48, 0.05]}>
+          <sphereGeometry args={[1, 16, 10]} />
           <meshPhysicalMaterial color={palette.accent} transparent opacity={0.84} side={THREE.DoubleSide} roughness={0.34} clearcoat={0.58} />
         </mesh>}
 
-        <mesh position={[0.08, -style.body[1] * 0.82, 0.02]} rotation={[0, 0, -0.56]}>
-          <coneGeometry args={[0.2, 0.54, 3]} />
-          <meshPhysicalMaterial color={palette.accent} transparent opacity={0.72} side={THREE.DoubleSide} roughness={0.36} />
-        </mesh>
+        <group ref={fins}>
+          <mesh position={[style.body[0] * 0.08, -style.body[1] * 0.56, style.body[2] * 0.56]} rotation={[0, 0, -0.68]} scale={[0.25, 0.43, 0.04]}>
+            <sphereGeometry args={[1, 16, 10]} />
+            <meshPhysicalMaterial color={palette.accent} transparent opacity={0.78} side={THREE.DoubleSide} roughness={0.32} clearcoat={0.55} />
+          </mesh>
+          <mesh position={[style.body[0] * 0.08, -style.body[1] * 0.56, -style.body[2] * 0.56]} rotation={[0, 0, -0.68]} scale={[0.25, 0.43, 0.04]}>
+            <sphereGeometry args={[1, 16, 10]} />
+            <meshPhysicalMaterial color={palette.accent} transparent opacity={0.48} side={THREE.DoubleSide} roughness={0.32} />
+          </mesh>
+        </group>
 
         {style.hood && <group position={[eyeX * 0.75, style.body[1] * 0.48, style.body[2] * 0.4]}>
           {[[0, 0, 0], [0.16, 0.1, 0.03], [-0.13, 0.08, 0.02], [0.03, -0.13, 0.07]].map(([x, y, z], hoodIndex) => (
@@ -176,13 +190,29 @@ function GoldfishModel({ fish, index, total, selected, onSelect }: { fish: Three
           ))}
         </group>}
 
-        <mesh position={[eyeX, style.body[1] * 0.18, style.body[2] * 0.88]} scale={[eyeSize, eyeSize, eyeSize]}>
+        {style.eyes === "telescope" && <mesh position={[eyeX, eyeY, eyeZ * 0.82]} scale={[eyeSize * 1.35, eyeSize * 1.35, eyeSize * 1.12]}>
           <sphereGeometry args={[1, 16, 12]} />
-          <meshStandardMaterial color={style.eyes === "telescope" ? palette.base : "#f5f6e7"} roughness={0.3} />
+          <meshPhysicalMaterial color={palette.base} roughness={0.34} clearcoat={0.58} />
+        </mesh>}
+        <mesh position={[eyeX, eyeY, eyeZ]} scale={[eyeSize, eyeSize, eyeSize * 0.48]}>
+          <sphereGeometry args={[1, 16, 12]} />
+          <meshStandardMaterial color="#fffdf0" roughness={0.26} />
         </mesh>
-        <mesh position={[eyeX + eyeSize * 0.18, style.body[1] * 0.18, style.body[2] * 1.05]} scale={[eyeSize * 0.48, eyeSize * 0.48, eyeSize * 0.25]}>
+        <mesh position={[eyeX + eyeSize * 0.12, eyeY, eyeZ * 1.1]} scale={[eyeSize * 0.53, eyeSize * 0.53, eyeSize * 0.18]}>
           <sphereGeometry args={[1, 14, 10]} />
           <meshStandardMaterial color="#10191c" roughness={0.22} />
+        </mesh>
+        <mesh position={[eyeX + eyeSize * 0.01, eyeY + eyeSize * 0.16, eyeZ * 1.19]} scale={[eyeSize * 0.14, eyeSize * 0.14, eyeSize * 0.05]}>
+          <sphereGeometry args={[1, 12, 8]} />
+          <meshBasicMaterial color="#ffffff" />
+        </mesh>
+        <mesh position={[eyeX - eyeSize * 0.38, eyeY - eyeSize * 0.7, eyeZ * 1.02]} scale={[0.11, 0.065, 0.02]}>
+          <circleGeometry args={[1, 16]} />
+          <meshBasicMaterial color="#ff8f9e" transparent opacity={0.42} />
+        </mesh>
+        <mesh position={[eyeX + eyeSize * 0.48, eyeY - eyeSize * 0.78, eyeZ * 1.04]} scale={[0.075, 0.075, 0.02]}>
+          <torusGeometry args={[1, 0.18, 6, 12, Math.PI]} />
+          <meshBasicMaterial color="#713e3d" transparent opacity={0.72} />
         </mesh>
       </group>
     </group>
