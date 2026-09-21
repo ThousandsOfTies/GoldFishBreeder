@@ -932,7 +932,7 @@ export default function HomePage() {
                   return (
                     <button type="button" key={fish.id} className={`parent-card ${chosen ? "chosen" : ""}`} disabled={unavailable} onClick={() => pickParent(fish)}>
                       {chosen && <span className="chosen-mark"><Check /></span>}
-                      <GoldfishPreview3D fish={fish} />
+                      <GoldfishPreview3D fish={fish} animate={false} />
                       <strong>{displayName(fish)}</strong>
                       <small>{placeName(fish.tank)}</small>
                     </button>

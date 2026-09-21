@@ -406,12 +406,38 @@ export function GoldfishAquarium3D({ fish, onSelect }: { fish: ThreeGoldfish[]; 
   );
 }
 
-export function GoldfishPreview3D({ fish }: { fish: ThreeGoldfish }) {
+function GoldfishPreviewFallback({ fish }: { fish: ThreeGoldfish }) {
+  const shape = SHAPES[fish.shapeId];
+  const color = fish.shapeId === "demekin" && fish.colorId === "sumi" ? BLACK_DEMEKIN : COLORS[fish.colorId];
+  const [bodyWidth, bodyHeight] = [shape.body[0] * 33, shape.body[1] * 34];
+  const eyeRadius = shape.eyes === "telescope" ? 9 : 5;
+
+  return (
+    <svg className="goldfish-preview-fallback" viewBox="0 0 180 100" role="img" aria-label="金魚の予備表示">
+      <path d="M55 50 C36 28, 20 25, 7 18 C12 37, 12 63, 7 82 C20 75, 36 72, 55 50Z" fill={color.accent} opacity="0.92" />
+      <ellipse cx="99" cy="50" rx={bodyWidth} ry={bodyHeight} fill={color.base} />
+      <ellipse cx="114" cy="42" rx={bodyWidth * 0.48} ry={bodyHeight * 0.5} fill={color.accent} opacity="0.84" />
+      {shape.hood && <circle cx="128" cy="31" r="13" fill={color.accent} />}
+      <circle cx="131" cy="42" r={eyeRadius} fill="#070a0c" />
+      {shape.eyes === "telescope" && <circle cx="126" cy="60" r={eyeRadius} fill="#070a0c" />}
+      <path d="M91 22 Q104 4 118 21" fill={color.accent} opacity="0.8" />
+      <path d="M101 76 Q110 88 124 76" fill={color.accent} opacity="0.72" />
+    </svg>
+  );
+}
+
+export function GoldfishPreview3D({ fish, animate = true }: { fish: ThreeGoldfish; animate?: boolean }) {
   const swimmers = useRef(new Map<string, SwimState>());
 
   return (
     <div className="goldfish-preview-canvas" aria-hidden="true">
-      <Canvas camera={{ position: [0, 0, 7], fov: 32 }} dpr={[1, 1.5]} gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}>
+      <Canvas
+        camera={{ position: [0, 0, 7], fov: 32 }}
+        dpr={animate ? [1, 1.5] : 1}
+        frameloop={animate ? "always" : "demand"}
+        gl={{ alpha: true, antialias: animate, powerPreference: animate ? "high-performance" : "low-power" }}
+        fallback={<GoldfishPreviewFallback fish={fish} />}
+      >
         <ambientLight intensity={1.35} color="#c8fff5" />
         <directionalLight position={[2, 4, 5]} intensity={2.1} color="#fff5d7" />
         <pointLight position={[-3, 1, 4]} intensity={1.6} color="#6ee8ff" distance={10} />
