@@ -66,6 +66,7 @@ button { font: inherit; }
 .fish-panel dl div { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 9px; border-bottom: 1px solid rgba(200,245,240,.11); }
 .fish-panel dt { color: #8dbcc3; font-size: .83rem; }
 .fish-panel dd { margin: 0; font-size: .9rem; font-weight: 700; }
+.fish-panel .traits-value { max-width: 148px; font-size: .76rem; line-height: 1.35; text-align: right; }
 .parent-button { width: 100%; min-height: 50px; border-radius: 15px; font-size: .95rem; font-weight: 800; box-shadow: 0 8px 26px rgba(255, 130, 79, .18); }
 .game-nav { position: fixed; z-index: 20; left: 50%; bottom: 18px; display: flex; gap: 7px; padding: 7px; transform: translateX(-50%); background: rgba(5, 29, 39, .88); border: 1px solid rgba(213, 252, 248, .18); border-radius: 19px; box-shadow: 0 18px 50px rgba(0,0,0,.4); backdrop-filter: blur(18px); }
 .nav-button { min-width: 145px; min-height: 52px; gap: 9px; color: #add2d6; border-radius: 13px; font-weight: 800; }
@@ -101,6 +102,10 @@ button { font: inherit; }
 .aquarium.is-viewing { position: fixed; z-index: 80; inset: 0; width: 100vw; height: 100vh; border: 0; border-radius: 0; }
 
 /* Breeding */
+.inheritance-explainer { display: flex; align-items: flex-start; gap: 10px; max-width: 770px; margin: -6px auto 23px; padding: 12px 15px; color: #d8f5f1; border: 1px solid rgba(119, 226, 210, .2); border-radius: 15px; background: rgba(18, 84, 91, .38); font-size: .84rem; line-height: 1.55; }
+.inheritance-explainer svg { flex: 0 0 auto; color: #ffe18c; margin-top: 2px; }
+.inheritance-explainer strong, .inheritance-explainer span { display: block; }
+.inheritance-explainer strong { color: #fff6d4; }
 .breeding-board { position: relative; display: grid; grid-template-columns: minmax(180px, 1fr) 95px minmax(180px, 1fr) 55px minmax(180px, 1fr); align-items: stretch; gap: 12px; max-width: 1120px; margin: 0 auto; }
 .parent-slot, .child-preview { min-height: 230px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 28px 18px 18px; color: #eefcfb; border: 1px solid rgba(179, 239, 233, .18); border-radius: 22px 9px 22px 9px; background: linear-gradient(155deg, rgba(27, 78, 90, .82), rgba(7, 41, 54, .9)); }
 .parent-slot { cursor: pointer; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
@@ -161,6 +166,14 @@ button { font: inherit; }
 .shape-chip { color: #07333c; background: #82e2d6; }
 .color-chip { color: #382507; background: #ffda83; }
 .book-rule strong { color: #f3ffff; }
+.genetics-guide { display: flex; align-items: center; justify-content: center; gap: 9px; max-width: 760px; margin: -5px auto 18px; padding: 10px 14px; color: #cbe7e5; border: 1px solid rgba(126, 224, 212, .15); border-radius: 14px; background: rgba(5, 48, 58, .42); font-size: .82rem; text-align: center; line-height: 1.5; }
+.genetics-guide svg { flex: 0 0 auto; color: #ffe08d; }
+.trait-book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.trait-book-card { display: flex; align-items: center; gap: 8px; min-height: 104px; padding: 10px; border: 1px solid rgba(190, 241, 236, .16); border-radius: 17px 7px 17px 7px; background: radial-gradient(circle at 15% 20%, rgba(116, 220, 208, .1), transparent 60%), rgba(2, 28, 39, .4); }
+.trait-book-card canvas { width: 105px; height: 58px; flex: 0 0 auto; filter: drop-shadow(0 7px 8px rgba(0,0,0,.3)); }
+.trait-book-card div { min-width: 0; display: grid; gap: 4px; }
+.trait-book-card strong { color: #fff0b7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trait-book-card small { color: #a7cdd1; font-size: .72rem; line-height: 1.45; }
 .book-table-wrap { overflow: hidden; border: 1px solid rgba(191, 241, 236, .16); border-radius: 18px; background: rgba(2, 24, 34, .38); }
 .breeding-table { min-width: 700px; border-collapse: separate; border-spacing: 0; }
 .breeding-table th, .breeding-table td { min-width: 132px; border-right: 1px solid rgba(186, 239, 233, .1); border-bottom: 1px solid rgba(186, 239, 233, .1); text-align: center; }
