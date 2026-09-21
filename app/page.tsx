@@ -321,8 +321,8 @@ function GoldfishCanvas({ shapeId, colorId, className = "" }: { shapeId: ShapeId
       if (shape.special === "ryukin") {
         // 上の頂点を少し後ろへ、下の頂点を少し前へずらした、丸みのあるひし形。
         ctx.moveTo(bodyX - shape.rx, bodyY);
-        ctx.quadraticCurveTo(bodyX - 29, bodyY - 30, bodyX - 12, bodyY - shape.ry - 2);
-        ctx.quadraticCurveTo(bodyX + 19, bodyY - shape.ry + 2, bodyX + shape.rx, bodyY - 4);
+        ctx.quadraticCurveTo(bodyX - 25, bodyY - 30, bodyX - 1, bodyY - shape.ry - 2);
+        ctx.quadraticCurveTo(bodyX + 23, bodyY - shape.ry + 2, bodyX + shape.rx, bodyY - 4);
         ctx.quadraticCurveTo(bodyX + 31, bodyY + 20, bodyX + 16, bodyY + shape.ry - 2);
         ctx.quadraticCurveTo(bodyX - 3, bodyY + shape.ry + 8, bodyX - 22, bodyY + shape.ry - 3);
         ctx.quadraticCurveTo(bodyX - 32, bodyY + 15, bodyX - shape.rx, bodyY);
