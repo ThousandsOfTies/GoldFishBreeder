@@ -32,7 +32,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Toaster } from "@/components/ui/sonner";
-import { GoldfishAquarium3D } from "@/components/goldfish-aquarium-3d";
+import { GoldfishAquarium3D, GoldfishPreview3D } from "@/components/goldfish-aquarium-3d";
 
 type ShapeId = "wakin" | "ryukin" | "demekin" | "oranda" | "ranchu" | "comet" | "pearl" | "butterfly";
 type ColorId = "beni" | "sakura" | "sumi" | "tancho" | "milk" | "lemon" | "calico" | "lavender";
@@ -335,24 +335,40 @@ function GoldfishCanvas({ shapeId, colorId, className = "" }: { shapeId: ShapeId
     tailGradient.addColorStop(0, `${palette.colors[0]}e8`);
     tailGradient.addColorStop(1, `${palette.colors[1]}88`);
     ctx.fillStyle = tailGradient;
-    ctx.beginPath();
-    ctx.moveTo(tailRoot, bodyY);
-    if (shape.special === "butterfly") {
+    if (shapeId === "wakin") {
+      // 和金は中央で分かれた二つ尾。3枚目に見える中央のひれを作らない。
+      ctx.beginPath();
+      ctx.moveTo(tailRoot, bodyY - 2);
+      ctx.bezierCurveTo(tailRoot - tailReach * 0.48, 11, 12, 18, tailRoot - tailReach, bodyY - 12);
+      ctx.bezierCurveTo(16, bodyY - 1, tailRoot - tailReach * 0.45, bodyY + 1, tailRoot, bodyY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(tailRoot, bodyY + 2);
+      ctx.bezierCurveTo(tailRoot - tailReach * 0.48, 89, 12, 82, tailRoot - tailReach, bodyY + 12);
+      ctx.bezierCurveTo(16, bodyY + 1, tailRoot - tailReach * 0.45, bodyY - 1, tailRoot, bodyY);
+      ctx.closePath();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(tailRoot, bodyY);
+      if (shape.special === "butterfly") {
       ctx.bezierCurveTo(tailRoot - tailReach * 0.75, 3, 6, 16, tailRoot - tailReach, 43);
       ctx.bezierCurveTo(4, 48, 4, 52, tailRoot - tailReach, 57);
       ctx.bezierCurveTo(8, 88, tailRoot - tailReach * 0.7, 98, tailRoot, bodyY + 5);
-    } else {
-      ctx.bezierCurveTo(tailRoot - tailReach * 0.55, 9, 12, 17, tailRoot - tailReach, 47);
-      ctx.bezierCurveTo(10, 78, tailRoot - tailReach * 0.52, 91, tailRoot, bodyY + 5);
+      } else {
+        ctx.bezierCurveTo(tailRoot - tailReach * 0.55, 9, 12, 17, tailRoot - tailReach, 47);
+        ctx.bezierCurveTo(10, 78, tailRoot - tailReach * 0.52, 91, tailRoot, bodyY + 5);
+      }
+      ctx.closePath();
     }
-    ctx.closePath();
     ctx.fill();
 
     if (shape.special !== "ranchu") {
       ctx.fillStyle = `${palette.colors[0]}9d`;
       ctx.beginPath();
-      ctx.moveTo(bodyX - 18, bodyY - shape.ry + 5);
-      ctx.quadraticCurveTo(bodyX + 2, bodyY - shape.ry - 20, bodyX + 17, bodyY - shape.ry + 8);
+      ctx.moveTo(bodyX - 20, bodyY - shape.ry + 7);
+      ctx.quadraticCurveTo(bodyX - 13, bodyY - shape.ry - 11, bodyX - 2, bodyY - shape.ry - 15);
+      ctx.quadraticCurveTo(bodyX + 13, bodyY - shape.ry - 9, bodyX + 18, bodyY - shape.ry + 8);
       ctx.closePath();
       ctx.fill();
     }
@@ -764,7 +780,7 @@ export default function HomePage() {
     <section className="game-stage">
       <div ref={aquariumRef} className={`aquarium ${viewingMode ? "is-viewing" : ""}`} aria-label={`${game.tankNames[game.activeTank]}。${activeTankFish.length}匹の金魚が泳いでいます`}>
         <div className="water-glow" />
-        {activeTankFish.length > 0 && <GoldfishAquarium3D fish={activeTankFish} selectedFishId={selectedFish?.id} onSelect={setSelectedFishId} />}
+        {activeTankFish.length > 0 && <GoldfishAquarium3D fish={activeTankFish} onSelect={setSelectedFishId} />}
         {activeTankFish.length > 0 && <div className="three-aquarium-hint">金魚を クリックしてみよう</div>}
         {activeTankFish.length > 0 && <div className="three-fish-picker" aria-label="水槽の金魚をえらぶ">
           {activeTankFish.map((fish) => <button type="button" key={fish.id} className={selectedFish?.id === fish.id ? "is-selected" : ""} onClick={() => setSelectedFishId(fish.id)}>{displayName(fish)}</button>)}
@@ -787,7 +803,7 @@ export default function HomePage() {
         {selectedFish && selectedFish.tank === game.activeTank ? (
           <>
             <p className="eyebrow">この金魚</p>
-            <div className="selected-fish"><GoldfishCanvas shapeId={selectedFish.shapeId} colorId={selectedFish.colorId} /></div>
+            <div className="selected-fish"><GoldfishPreview3D fish={selectedFish} /></div>
             <h2>{displayName(selectedFish)}</h2>
             <p className="species-label">{game.fish.filter((fish) => speciesKey(fish.shapeId, fish.colorId) === speciesKey(selectedFish.shapeId, selectedFish.colorId)).length}ひき いるよ</p>
             <dl>

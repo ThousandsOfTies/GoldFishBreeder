@@ -61,7 +61,8 @@ button { font: inherit; }
 .fish-panel { min-width: 0; padding: 24px; border: 1px solid rgba(194, 245, 239, .18); border-radius: 12px 26px 12px 26px; background: linear-gradient(160deg, rgba(18, 61, 75, .9), rgba(7, 35, 47, .94)); box-shadow: 0 20px 60px rgba(0,0,0,.24); }
 .eyebrow { margin: 0; color: #73ddd1; font-size: .75rem; font-weight: 800; letter-spacing: .12em; }
 .selected-fish { height: 145px; display: grid; place-items: center; margin: 12px -8px 2px; border-bottom: 1px solid rgba(200,245,240,.12); }
-.selected-fish canvas { width: 180px; height: 100px; filter: drop-shadow(0 12px 13px rgba(0,0,0,.28)); }
+.goldfish-preview-canvas { width: 190px; height: 132px; filter: drop-shadow(0 12px 13px rgba(0,0,0,.28)); pointer-events: none; }
+.goldfish-preview-canvas canvas { display: block; width: 100% !important; height: 100% !important; outline: none; }
 .fish-panel h2 { margin: 17px 0 2px; font-size: 1.6rem; }
 .species-label { margin: 0 0 20px; color: #b7d8dc; font-size: .9rem; }
 .fish-panel dl { display: grid; gap: 10px; margin: 0 0 22px; }

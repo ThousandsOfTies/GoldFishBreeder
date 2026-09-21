@@ -22,7 +22,7 @@ type ShapeStyle = {
   eyes: "normal" | "telescope";
   hood?: boolean;
   pearlScales?: boolean;
-  tailStyle?: "butterfly" | "long";
+  tailStyle?: "butterfly" | "long" | "double";
 };
 
 type ColorStyle = {
@@ -33,7 +33,7 @@ type ColorStyle = {
 };
 
 const SHAPES: Record<GoldfishShapeId, ShapeStyle> = {
-  wakin: { body: [1.55, 0.72, 0.58], tail: [0.8, 0.86], dorsal: true, eyes: "normal" },
+  wakin: { body: [1.55, 0.72, 0.58], tail: [0.8, 0.86], dorsal: true, eyes: "normal", tailStyle: "double" },
   ryukin: { body: [1.18, 1.06, 0.75], bodyStyle: "ryukin", tail: [0.95, 1.02], dorsal: true, eyes: "normal" },
   demekin: { body: [1.04, 0.68, 0.54], tail: [0.82, 0.9], dorsal: true, eyes: "telescope" },
   oranda: { body: [1.25, 0.95, 0.7], tail: [0.95, 1.05], dorsal: true, eyes: "normal", hood: true },
@@ -64,6 +64,21 @@ tailShape.quadraticCurveTo(-0.9, 0.2, -1.32, 0);
 tailShape.quadraticCurveTo(-0.9, -0.2, -1.12, -0.72);
 tailShape.quadraticCurveTo(-0.55, -0.95, 0.08, -0.18);
 tailShape.closePath();
+
+// 和金の二つ尾。上・下の2枚を別のひれとして描く。
+const doubleTailLobeShape = new THREE.Shape();
+doubleTailLobeShape.moveTo(0.08, 0);
+doubleTailLobeShape.quadraticCurveTo(-0.55, 0.12, -1.22, 0.78);
+doubleTailLobeShape.quadraticCurveTo(-1.13, 0.24, -0.72, -0.1);
+doubleTailLobeShape.quadraticCurveTo(-0.3, -0.14, 0.08, 0);
+doubleTailLobeShape.closePath();
+
+// 背びれは角ではなく、水に揺れる薄い扇形にする。
+const dorsalFinShape = new THREE.Shape();
+dorsalFinShape.moveTo(-0.42, 0);
+dorsalFinShape.quadraticCurveTo(-0.3, 0.46, 0.04, 0.7);
+dorsalFinShape.quadraticCurveTo(0.42, 0.38, 0.38, 0);
+dorsalFinShape.closePath();
 
 // 琉金は背中の高い、ややひし形の胴。上の頂点を後ろ、下の頂点を前にずらす。
 const ryukinBodyGeometry = new THREE.SphereGeometry(1, 28, 18);
@@ -192,7 +207,7 @@ function chooseAvoidanceDestination(route: SwimState, other: SwimState, seed: nu
   route.avoidUntil = time + 0.52;
 }
 
-function GoldfishModel({ fish, index, total, selected, onSelect, swimmers }: { fish: ThreeGoldfish; index: number; total: number; selected: boolean; onSelect: (id: string) => void; swimmers: SwimRegistry }) {
+function GoldfishModel({ fish, index, total, onSelect, swimmers, preview = false }: { fish: ThreeGoldfish; index: number; total: number; onSelect?: (id: string) => void; swimmers: SwimRegistry; preview?: boolean }) {
   const group = useRef<THREE.Group>(null);
   const tail = useRef<THREE.Group>(null);
   const fins = useRef<THREE.Group>(null);
@@ -207,45 +222,54 @@ function GoldfishModel({ fish, index, total, selected, onSelect, swimmers }: { f
     swimmers.current.set(fish.id, swim.current);
   }
 
-  useEffect(() => () => {
-    swimmers.current.delete(fish.id);
-  }, [fish.id, swimmers]);
+  useEffect(() => {
+    if (preview) return;
+    return () => {
+      swimmers.current.delete(fish.id);
+    };
+  }, [fish.id, preview, swimmers]);
 
   useFrame(({ clock }, delta) => {
     const item = group.current;
     const route = swim.current ?? (swim.current = firstSwimState(fish.seed + index * 101, index, personalSpace));
     if (item) {
       const time = clock.getElapsedTime() + phase;
-      if (time >= route.avoidUntil) {
-        for (const [otherId, other] of swimmers.current) {
-          if (otherId === fish.id) continue;
-          // 画面上の接触感に合わせ、奥行きではなく横・縦の見えない円で判定する。
-          if (Math.hypot(route.x - other.x, route.y - other.y) < route.personalSpace + other.personalSpace) {
-            chooseAvoidanceDestination(route, other, fish.seed + index * 101, time);
-            break;
+      if (preview) {
+        item.position.set(0, Math.sin(time * 1.8) * 0.05, 0);
+        item.scale.set(0.8, 0.8, 0.8);
+        item.rotation.z = Math.sin(time * 1.8) * 0.025;
+      } else {
+        if (time >= route.avoidUntil) {
+          for (const [otherId, other] of swimmers.current) {
+            if (otherId === fish.id) continue;
+            // 画面上の接触感に合わせ、奥行きではなく横・縦の見えない円で判定する。
+            if (Math.hypot(route.x - other.x, route.y - other.y) < route.personalSpace + other.personalSpace) {
+              chooseAvoidanceDestination(route, other, fish.seed + index * 101, time);
+              break;
+            }
           }
         }
+        const dx = route.targetX - route.x;
+        const dy = route.targetY - route.y;
+        const dz = route.targetZ - route.z;
+        const distance = Math.hypot(dx, dy, dz);
+        if (distance < 0.12) {
+          route.trip += 1;
+          const destination = nextDestination(fish.seed + index * 101, route.trip);
+          route.targetX = destination.x;
+          route.targetY = destination.y;
+          route.targetZ = destination.z;
+        } else {
+          const pace = 0.38 + (fish.seed % 4) * 0.045;
+          const step = Math.min(distance, pace * delta);
+          route.x += (dx / distance) * step;
+          route.y += (dy / distance) * step;
+          route.z += (dz / distance) * step;
+        }
+        item.position.set(route.x, route.y + Math.sin(time * 2.2) * 0.045, route.z);
+        item.scale.set((route.targetX < route.x ? -1 : 1) * densityScale, densityScale, densityScale);
+        item.rotation.z = THREE.MathUtils.lerp(item.rotation.z, Math.sin(time * 2.2) * 0.045, 0.05);
       }
-      const dx = route.targetX - route.x;
-      const dy = route.targetY - route.y;
-      const dz = route.targetZ - route.z;
-      const distance = Math.hypot(dx, dy, dz);
-      if (distance < 0.12) {
-        route.trip += 1;
-        const destination = nextDestination(fish.seed + index * 101, route.trip);
-        route.targetX = destination.x;
-        route.targetY = destination.y;
-        route.targetZ = destination.z;
-      } else {
-        const pace = 0.38 + (fish.seed % 4) * 0.045;
-        const step = Math.min(distance, pace * delta);
-        route.x += (dx / distance) * step;
-        route.y += (dy / distance) * step;
-        route.z += (dz / distance) * step;
-      }
-      item.position.set(route.x, route.y + Math.sin(time * 2.2) * 0.045, route.z);
-      item.scale.set((route.targetX < route.x ? -1 : 1) * densityScale, densityScale, densityScale);
-      item.rotation.z = THREE.MathUtils.lerp(item.rotation.z, Math.sin(time * 2.2) * 0.045, 0.05);
     }
     if (tail.current) tail.current.rotation.z = Math.sin(clock.getElapsedTime() * 5.2 + phase) * 0.2;
     if (fins.current) fins.current.rotation.z = Math.sin(clock.getElapsedTime() * 4.5 + phase) * 0.14;
@@ -255,14 +279,12 @@ function GoldfishModel({ fish, index, total, selected, onSelect, swimmers }: { f
   const eyeX = style.body[0] * 0.68;
   const eyeY = style.body[1] * 0.18;
   const eyeZ = style.body[2] * 0.91;
-  const highlight = selected ? "#ffe28a" : "#000000";
-
   return (
-    <group ref={group} onClick={() => onSelect(fish.id)}>
-      <group scale={selected ? 1.08 : 1}>
+    <group ref={group} onClick={() => onSelect?.(fish.id)}>
+      <group>
         <mesh scale={style.body} castShadow receiveShadow>
           {style.bodyStyle === "ryukin" ? <primitive object={ryukinBodyGeometry} attach="geometry" /> : <sphereGeometry args={[1, 28, 18]} />}
-          <meshPhysicalMaterial color={palette.base} roughness={0.36} metalness={0.04} clearcoat={0.72} clearcoatRoughness={0.26} emissive={highlight} emissiveIntensity={selected ? 0.16 : 0} />
+          <meshPhysicalMaterial color={palette.base} roughness={0.36} metalness={0.04} clearcoat={0.72} clearcoatRoughness={0.26} />
         </mesh>
         <mesh position={[style.body[0] * 0.14, style.body[1] * 0.36, style.body[2] * 0.86]} scale={[0.32, 0.16, 0.025]}>
           <sphereGeometry args={[1, 16, 10]} />
@@ -272,18 +294,27 @@ function GoldfishModel({ fish, index, total, selected, onSelect, swimmers }: { f
         {style.pearlScales && <PearlScales body={style.body} />}
 
         <group ref={tail} position={[-style.body[0] * 0.84, 0, -0.015]} scale={[style.tail[0], style.tail[1], 1]}>
-          <mesh>
+          {style.tailStyle === "double" ? <>
+            <mesh position={[0, 0.06, 0]}>
+              <shapeGeometry args={[doubleTailLobeShape]} />
+              <meshPhysicalMaterial color={palette.accent} transparent opacity={0.86} side={THREE.DoubleSide} roughness={0.32} clearcoat={0.66} />
+            </mesh>
+            <mesh position={[0, -0.06, -0.01]} scale={[1, -1, 1]}>
+              <shapeGeometry args={[doubleTailLobeShape]} />
+              <meshPhysicalMaterial color={palette.accent} transparent opacity={0.86} side={THREE.DoubleSide} roughness={0.32} clearcoat={0.66} />
+            </mesh>
+          </> : <mesh>
             <shapeGeometry args={[tailShape]} />
             <meshPhysicalMaterial color={palette.accent} transparent opacity={0.86} side={THREE.DoubleSide} roughness={0.32} clearcoat={0.66} />
-          </mesh>
+          </mesh>}
           {style.tailStyle === "butterfly" && <mesh position={[-0.45, 0, -0.02]} rotation={[0, 0, Math.PI]} scale={[1, 1, 1]}>
             <shapeGeometry args={[tailShape]} />
             <meshPhysicalMaterial color={palette.accent} transparent opacity={0.72} side={THREE.DoubleSide} roughness={0.32} clearcoat={0.66} />
           </mesh>}
         </group>
 
-        {style.dorsal && <mesh position={[-0.08, style.body[1] * 0.92, 0]} scale={[0.2, 0.48, 0.05]}>
-          <sphereGeometry args={[1, 16, 10]} />
+        {style.dorsal && <mesh position={[-style.body[0] * 0.18, style.body[1] * 0.78, style.body[2] * 0.18]}>
+          <shapeGeometry args={[dorsalFinShape]} />
           <meshPhysicalMaterial color={palette.accent} transparent opacity={0.84} side={THREE.DoubleSide} roughness={0.34} clearcoat={0.58} />
         </mesh>}
 
@@ -343,7 +374,7 @@ function Bubbles() {
   </group>;
 }
 
-export function GoldfishAquarium3D({ fish, selectedFishId, onSelect }: { fish: ThreeGoldfish[]; selectedFishId?: string; onSelect: (id: string) => void }) {
+export function GoldfishAquarium3D({ fish, onSelect }: { fish: ThreeGoldfish[]; onSelect: (id: string) => void }) {
   const swimmers = useRef(new Map<string, SwimState>());
 
   return (
@@ -353,7 +384,22 @@ export function GoldfishAquarium3D({ fish, selectedFishId, onSelect }: { fish: T
         <directionalLight position={[2, 5, 6]} intensity={2.15} color="#fff5d7" />
         <pointLight position={[-4, 2, 4]} intensity={2.1} color="#6ee8ff" distance={13} />
         <Bubbles />
-        {fish.map((item, index) => <GoldfishModel key={item.id} fish={item} index={index} total={fish.length} selected={item.id === selectedFishId} onSelect={onSelect} swimmers={swimmers} />)}
+        {fish.map((item, index) => <GoldfishModel key={item.id} fish={item} index={index} total={fish.length} onSelect={onSelect} swimmers={swimmers} />)}
+      </Canvas>
+    </div>
+  );
+}
+
+export function GoldfishPreview3D({ fish }: { fish: ThreeGoldfish }) {
+  const swimmers = useRef(new Map<string, SwimState>());
+
+  return (
+    <div className="goldfish-preview-canvas" aria-hidden="true">
+      <Canvas camera={{ position: [0, 0, 7], fov: 32 }} dpr={[1, 1.5]} gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}>
+        <ambientLight intensity={1.35} color="#c8fff5" />
+        <directionalLight position={[2, 4, 5]} intensity={2.1} color="#fff5d7" />
+        <pointLight position={[-3, 1, 4]} intensity={1.6} color="#6ee8ff" distance={10} />
+        <GoldfishModel fish={fish} index={0} total={1} swimmers={swimmers} preview />
       </Canvas>
     </div>
   );
