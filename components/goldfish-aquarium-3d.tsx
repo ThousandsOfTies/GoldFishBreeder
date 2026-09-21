@@ -105,33 +105,81 @@ function PearlScales({ body }: { body: ShapeStyle["body"] }) {
   );
 }
 
-const SWIM_SPOTS: Array<[number, number, number]> = [
-  [-3.1, 1.7, 0.1], [2.35, 1.45, -0.18], [-3.25, -1.3, -0.22], [2.45, -1.48, 0.14], [0, 0.08, -0.34],
-  [-1.2, 2.35, -0.55], [1.25, 2.28, -0.48], [-1.15, -2.18, -0.47], [1.1, -2.23, -0.5], [0, -0.32, -0.62],
+type SwimState = {
+  x: number;
+  y: number;
+  z: number;
+  targetX: number;
+  targetY: number;
+  targetZ: number;
+  trip: number;
+};
+
+// 最初だけゆるく散らしておき、以降はそれぞれが自由に次の行き先を選ぶ。
+// これで水槽を開いた直後から、みんなが同じ場所へ集まりにくい。
+const STARTING_SPOTS: Array<[number, number, number]> = [
+  [-3.05, 1.45, -0.18], [2.75, 1.3, -0.28], [-3.15, -1.35, -0.3], [2.7, -1.4, -0.18], [0, 0.15, -0.5],
+  [-1.2, 2.0, -0.5], [1.2, 2.0, -0.46], [-1.2, -1.95, -0.46], [1.15, -1.95, -0.5], [0, -0.45, -0.6],
 ];
+
+function seededUnit(seed: number) {
+  const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+  return value - Math.floor(value);
+}
+
+function nextDestination(seed: number, trip: number) {
+  return {
+    x: -4.15 + seededUnit(seed + trip * 13) * 8.3,
+    y: -2.1 + seededUnit(seed + trip * 31) * 4.15,
+    z: -0.6 + seededUnit(seed + trip * 47) * 0.72,
+  };
+}
+
+function firstSwimState(seed: number, index: number): SwimState {
+  const [x, y, z] = STARTING_SPOTS[index % STARTING_SPOTS.length];
+  const target = nextDestination(seed, 1);
+  return { x, y, z, targetX: target.x, targetY: target.y, targetZ: target.z, trip: 1 };
+}
 
 function GoldfishModel({ fish, index, total, selected, onSelect }: { fish: ThreeGoldfish; index: number; total: number; selected: boolean; onSelect: (id: string) => void }) {
   const group = useRef<THREE.Group>(null);
   const tail = useRef<THREE.Group>(null);
   const fins = useRef<THREE.Group>(null);
+  const swim = useRef<SwimState | null>(null);
   const style = SHAPES[fish.shapeId];
   const palette = COLORS[fish.colorId];
   const phase = (fish.seed % 360) * (Math.PI / 180);
-  const [homeX, homeY, homeZ] = SWIM_SPOTS[index % SWIM_SPOTS.length];
   const densityScale = total >= 8 ? 0.34 : total >= 5 ? 0.4 : total >= 3 ? 0.5 : 0.62;
+  if (swim.current === null) swim.current = firstSwimState(fish.seed + index * 101, index);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     const item = group.current;
+    const route = swim.current ?? (swim.current = firstSwimState(fish.seed + index * 101, index));
     if (item) {
-      const time = clock.getElapsedTime() * 0.56 + phase;
-      item.position.x = homeX + Math.sin(time * (0.58 + (fish.seed % 3) * 0.04)) * 0.45;
-      item.position.y = homeY + Math.sin(time * 1.21) * 0.18;
-      item.position.z = homeZ;
-      item.rotation.z = Math.sin(time * 1.21) * 0.07;
-      item.rotation.y = 0;
+      const time = clock.getElapsedTime() + phase;
+      const dx = route.targetX - route.x;
+      const dy = route.targetY - route.y;
+      const dz = route.targetZ - route.z;
+      const distance = Math.hypot(dx, dy, dz);
+      if (distance < 0.12) {
+        route.trip += 1;
+        const destination = nextDestination(fish.seed + index * 101, route.trip);
+        route.targetX = destination.x;
+        route.targetY = destination.y;
+        route.targetZ = destination.z;
+      } else {
+        const pace = 0.38 + (fish.seed % 4) * 0.045;
+        const step = Math.min(distance, pace * delta);
+        route.x += (dx / distance) * step;
+        route.y += (dy / distance) * step;
+        route.z += (dz / distance) * step;
+      }
+      item.position.set(route.x, route.y + Math.sin(time * 2.2) * 0.045, route.z);
+      item.scale.set((route.targetX < route.x ? -1 : 1) * densityScale, densityScale, densityScale);
+      item.rotation.z = THREE.MathUtils.lerp(item.rotation.z, Math.sin(time * 2.2) * 0.045, 0.05);
     }
-    if (tail.current) tail.current.rotation.z = Math.sin(clock.getElapsedTime() * 5.2 + phase) * 0.18;
-    if (fins.current) fins.current.rotation.z = Math.sin(clock.getElapsedTime() * 4.5 + phase) * 0.12;
+    if (tail.current) tail.current.rotation.z = Math.sin(clock.getElapsedTime() * 5.2 + phase) * 0.2;
+    if (fins.current) fins.current.rotation.z = Math.sin(clock.getElapsedTime() * 4.5 + phase) * 0.14;
   });
 
   const eyeSize = style.eyes === "telescope" ? 0.27 : 0.17;
@@ -141,7 +189,7 @@ function GoldfishModel({ fish, index, total, selected, onSelect }: { fish: Three
   const highlight = selected ? "#ffe28a" : "#000000";
 
   return (
-    <group ref={group} scale={densityScale} onClick={() => onSelect(fish.id)}>
+    <group ref={group} onClick={() => onSelect(fish.id)}>
       <group scale={selected ? 1.08 : 1}>
         <mesh scale={style.body} castShadow receiveShadow>
           <sphereGeometry args={[1, 28, 18]} />
