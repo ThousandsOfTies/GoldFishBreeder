@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 export type GoldfishShapeId = "wakin" | "ryukin" | "demekin" | "oranda" | "ranchu" | "comet" | "pearl" | "butterfly";
@@ -113,7 +113,11 @@ type SwimState = {
   targetY: number;
   targetZ: number;
   trip: number;
+  personalSpace: number;
+  avoidUntil: number;
 };
+
+type SwimRegistry = React.MutableRefObject<Map<string, SwimState>>;
 
 // 最初だけゆるく散らしておき、以降はそれぞれが自由に次の行き先を選ぶ。
 // これで水槽を開いた直後から、みんなが同じ場所へ集まりにくい。
@@ -135,13 +139,36 @@ function nextDestination(seed: number, trip: number) {
   };
 }
 
-function firstSwimState(seed: number, index: number): SwimState {
+function firstSwimState(seed: number, index: number, personalSpace: number): SwimState {
   const [x, y, z] = STARTING_SPOTS[index % STARTING_SPOTS.length];
   const target = nextDestination(seed, 1);
-  return { x, y, z, targetX: target.x, targetY: target.y, targetZ: target.z, trip: 1 };
+  return { x, y, z, targetX: target.x, targetY: target.y, targetZ: target.z, trip: 1, personalSpace, avoidUntil: 0 };
 }
 
-function GoldfishModel({ fish, index, total, selected, onSelect }: { fish: ThreeGoldfish; index: number; total: number; selected: boolean; onSelect: (id: string) => void }) {
+function chooseAvoidanceDestination(route: SwimState, other: SwimState, seed: number, time: number) {
+  let awayX = route.x - other.x;
+  let awayY = route.y - other.y;
+  const distance = Math.hypot(awayX, awayY);
+
+  // 完全に重なった瞬間にも、種ごとに一定の方向へ散れるようにする。
+  if (distance < 0.001) {
+    const angle = seededUnit(seed + route.trip * 71) * Math.PI * 2;
+    awayX = Math.cos(angle);
+    awayY = Math.sin(angle);
+  } else {
+    awayX /= distance;
+    awayY /= distance;
+  }
+
+  route.targetX = THREE.MathUtils.clamp(route.x + awayX * 3.3, -4.15, 4.15);
+  route.targetY = THREE.MathUtils.clamp(route.y + awayY * 2.7, -2.1, 2.05);
+  route.targetZ = THREE.MathUtils.clamp(route.z + (seededUnit(seed + route.trip * 19) - 0.5) * 0.36, -0.6, 0.12);
+  route.trip += 1;
+  // 少しの間は同じ相手との再判定を待ち、方向転換時の震えを防ぐ。
+  route.avoidUntil = time + 0.52;
+}
+
+function GoldfishModel({ fish, index, total, selected, onSelect, swimmers }: { fish: ThreeGoldfish; index: number; total: number; selected: boolean; onSelect: (id: string) => void; swimmers: SwimRegistry }) {
   const group = useRef<THREE.Group>(null);
   const tail = useRef<THREE.Group>(null);
   const fins = useRef<THREE.Group>(null);
@@ -150,13 +177,31 @@ function GoldfishModel({ fish, index, total, selected, onSelect }: { fish: Three
   const palette = COLORS[fish.colorId];
   const phase = (fish.seed % 360) * (Math.PI / 180);
   const densityScale = total >= 8 ? 0.34 : total >= 5 ? 0.4 : total >= 3 ? 0.5 : 0.62;
-  if (swim.current === null) swim.current = firstSwimState(fish.seed + index * 101, index);
+  const personalSpace = densityScale * (style.tailStyle ? 1.42 : style.body[0] > 1.5 ? 1.28 : 1.12);
+  if (swim.current === null) {
+    swim.current = swimmers.current.get(fish.id) ?? firstSwimState(fish.seed + index * 101, index, personalSpace);
+    swimmers.current.set(fish.id, swim.current);
+  }
+
+  useEffect(() => () => {
+    swimmers.current.delete(fish.id);
+  }, [fish.id, swimmers]);
 
   useFrame(({ clock }, delta) => {
     const item = group.current;
-    const route = swim.current ?? (swim.current = firstSwimState(fish.seed + index * 101, index));
+    const route = swim.current ?? (swim.current = firstSwimState(fish.seed + index * 101, index, personalSpace));
     if (item) {
       const time = clock.getElapsedTime() + phase;
+      if (time >= route.avoidUntil) {
+        for (const [otherId, other] of swimmers.current) {
+          if (otherId === fish.id) continue;
+          // 画面上の接触感に合わせ、奥行きではなく横・縦の見えない円で判定する。
+          if (Math.hypot(route.x - other.x, route.y - other.y) < route.personalSpace + other.personalSpace) {
+            chooseAvoidanceDestination(route, other, fish.seed + index * 101, time);
+            break;
+          }
+        }
+      }
       const dx = route.targetX - route.x;
       const dy = route.targetY - route.y;
       const dz = route.targetZ - route.z;
@@ -283,6 +328,8 @@ function Bubbles() {
 }
 
 export function GoldfishAquarium3D({ fish, selectedFishId, onSelect }: { fish: ThreeGoldfish[]; selectedFishId?: string; onSelect: (id: string) => void }) {
+  const swimmers = useRef(new Map<string, SwimState>());
+
   return (
     <div className="three-aquarium-canvas" aria-hidden="true">
       <Canvas camera={{ position: [0, 0, 11.5], fov: 38 }} dpr={[1, 1.5]} gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}>
@@ -290,7 +337,7 @@ export function GoldfishAquarium3D({ fish, selectedFishId, onSelect }: { fish: T
         <directionalLight position={[2, 5, 6]} intensity={2.15} color="#fff5d7" />
         <pointLight position={[-4, 2, 4]} intensity={2.1} color="#6ee8ff" distance={13} />
         <Bubbles />
-        {fish.map((item, index) => <GoldfishModel key={item.id} fish={item} index={index} total={fish.length} selected={item.id === selectedFishId} onSelect={onSelect} />)}
+        {fish.map((item, index) => <GoldfishModel key={item.id} fish={item} index={index} total={fish.length} selected={item.id === selectedFishId} onSelect={onSelect} swimmers={swimmers} />)}
       </Canvas>
     </div>
   );
