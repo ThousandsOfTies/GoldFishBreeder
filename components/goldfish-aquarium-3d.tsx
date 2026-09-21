@@ -90,11 +90,12 @@ for (let index = 0; index < ryukinPositions.count; index += 1) {
   const top = Math.max(y, 0);
   const bottom = Math.max(-y, 0);
   // 丸みを失わずに、上の頂点は後ろ、下の頂点は前へ寄せる。
-  const taper = 1 - 0.58 * Math.pow(Math.abs(y), 1.25);
+  // 背中側は絞るが、おなか側は幅を残して丸くふくらませる。
+  const taper = 1 - 0.58 * Math.pow(top, 1.25) - 0.18 * Math.pow(bottom, 1.35);
   ryukinPositions.setXYZ(
     index,
-    x * taper - 0.3 * Math.pow(top, 1.5) + 0.22 * Math.pow(bottom, 1.5),
-    y * (1 + 0.12 * Math.abs(y)),
+    x * taper - 0.3 * Math.pow(top, 1.5) + 0.1 * Math.pow(bottom, 1.5),
+    y * (1 + 0.12 * top + 0.03 * bottom),
     z * (1 - 0.12 * Math.abs(y)),
   );
 }

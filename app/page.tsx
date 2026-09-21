@@ -323,8 +323,9 @@ function GoldfishCanvas({ shapeId, colorId, className = "" }: { shapeId: ShapeId
         ctx.moveTo(bodyX - shape.rx, bodyY);
         ctx.quadraticCurveTo(bodyX - 29, bodyY - 30, bodyX - 12, bodyY - shape.ry - 2);
         ctx.quadraticCurveTo(bodyX + 19, bodyY - shape.ry + 2, bodyX + shape.rx, bodyY - 4);
-        ctx.quadraticCurveTo(bodyX + 29, bodyY + 25, bodyX + 12, bodyY + shape.ry);
-        ctx.quadraticCurveTo(bodyX - 20, bodyY + shape.ry - 5, bodyX - shape.rx, bodyY);
+        ctx.quadraticCurveTo(bodyX + 31, bodyY + 20, bodyX + 16, bodyY + shape.ry - 2);
+        ctx.quadraticCurveTo(bodyX - 3, bodyY + shape.ry + 8, bodyX - 22, bodyY + shape.ry - 3);
+        ctx.quadraticCurveTo(bodyX - 32, bodyY + 15, bodyX - shape.rx, bodyY);
         ctx.closePath();
       } else {
         ctx.ellipse(bodyX, bodyY, shape.rx, shape.ry, shape.special === "ranchu" ? -0.08 : 0, 0, Math.PI * 2);
