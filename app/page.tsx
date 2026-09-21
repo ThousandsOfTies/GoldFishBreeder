@@ -1,10 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   BookOpen,
   Check,
+  Download,
   Fish as FishIcon,
   FlaskConical,
   Home,
@@ -15,6 +16,7 @@ import {
   Pencil,
   Plus,
   Sparkles,
+  Upload,
   Waves,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -72,6 +74,13 @@ type GameState = {
   breedCount: number;
   activeTank: number;
   tutorialDone: boolean;
+};
+
+type BackupFile = {
+  kind: "kingyo-aquarium-save";
+  formatVersion: 1;
+  exportedAt: string;
+  game: GameState;
 };
 
 type BirthSummary = {
@@ -158,6 +167,15 @@ function legacyGenome(shapeId: ShapeId, colorId: ColorId): FishGenome {
 
 function genomeFor(fish: FishRecord): FishGenome {
   return fish.genome ?? legacyGenome(fish.shapeId, fish.colorId);
+}
+
+function migrateGame(saved: GameState): GameState | null {
+  if (!Array.isArray(saved.fish) || saved.tankNames?.length !== 10 || typeof saved.breedCount !== "number") return null;
+  return {
+    ...saved,
+    version: 2,
+    fish: saved.fish.map((fish) => ({ ...fish, genome: genomeFor(fish) })),
+  };
 }
 
 function inherits<T,>(first: [T, T], second: [T, T]): [T, T] {
@@ -364,19 +382,17 @@ export default function HomePage() {
   const [tankNameDraft, setTankNameDraft] = useState("");
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [viewingMode, setViewingMode] = useState(false);
+  const [backupOpen, setBackupOpen] = useState(false);
   const aquariumRef = useRef<HTMLDivElement>(null);
+  const backupInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem("kingyo-aquarium-v1");
       if (saved) {
         const parsed = JSON.parse(saved) as GameState;
-        if (Array.isArray(parsed.fish) && parsed.tankNames?.length === 10) {
-          const migrated: GameState = {
-            ...parsed,
-            version: 2,
-            fish: parsed.fish.map((fish) => ({ ...fish, genome: genomeFor(fish) })),
-          };
+        const migrated = migrateGame(parsed);
+        if (migrated) {
           setGame(migrated);
           setSelectedFishId(migrated.fish.find((fish) => fish.tank === migrated.activeTank)?.id ?? migrated.fish[0]?.id ?? "");
         }
@@ -621,6 +637,35 @@ export default function HomePage() {
     setTutorialOpen(false);
   };
 
+  const downloadBackup = () => {
+    const backup: BackupFile = { kind: "kingyo-aquarium-save", formatVersion: 1, exportedAt: new Date().toISOString(), game };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `kingyo-aquarium-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    toast.success("バックアップを 保存しました");
+  };
+
+  const restoreBackup = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const parsed = JSON.parse(await file.text()) as Partial<BackupFile>;
+      const restored = parsed.kind === "kingyo-aquarium-save" && parsed.formatVersion === 1 && parsed.game ? migrateGame(parsed.game) : null;
+      if (!restored) throw new Error("invalid backup");
+      setGame(restored);
+      setSelectedFishId(restored.fish.find((fish) => fish.tank === restored.activeTank)?.id ?? restored.fish[0]?.id ?? "");
+      setView("aquarium");
+      setBackupOpen(false);
+      toast.success("バックアップから 水族館を もどしました");
+    } catch {
+      toast.error("このファイルは 読み込めませんでした");
+    }
+  };
+
   const toggleViewingMode = async () => {
     if (viewingMode) {
       setViewingMode(false);
@@ -661,6 +706,7 @@ export default function HomePage() {
         <div className="meter-copy"><Sparkles size={17} /><span>{allParentsUnlocked ? "おや金魚 ぜんぶ発見！" : "つぎのおや金魚まで"}</span><strong>{allParentsUnlocked ? "8しゅるい" : `${progressStep} / 5`}</strong></div>
         <Progress value={progressValue} className="meter-track" />
       </div>
+      <Button variant="ghost" size="icon" className="backup-button" aria-label="セーブとバックアップ" onClick={() => setBackupOpen(true)}><Download size={18} /></Button>
     </header>
   );
 
@@ -899,6 +945,22 @@ export default function HomePage() {
             <Input value={tankNameDraft} onChange={(event) => setTankNameDraft(event.target.value.slice(0, 14))} maxLength={14} autoFocus />
             <DialogFooter><Button type="submit" disabled={!tankNameDraft.trim()}>この名前にする</Button></DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={backupOpen} onOpenChange={setBackupOpen}>
+        <DialogContent className="game-dialog backup-dialog">
+          <DialogHeader><DialogTitle>セーブと バックアップ</DialogTitle><DialogDescription>ふだんのセーブは、このパソコンに自動で保存されています。</DialogDescription></DialogHeader>
+          <div className="backup-copy">
+            <p><strong>別のパソコンでも遊ぶとき</strong><span>「保存」で作ったファイルを移して、「戻す」から読み込みます。</span></p>
+            <p><strong>安心のために</strong><span>ときどき保存しておくと、ブラウザのデータを消しても水族館を戻せます。</span></p>
+          </div>
+          <div className="backup-actions">
+            <Button size="lg" onClick={downloadBackup}><Download />バックアップを 保存</Button>
+            <Button size="lg" variant="outline" onClick={() => backupInputRef.current?.click()}><Upload />ファイルから 戻す</Button>
+          </div>
+          <input ref={backupInputRef} className="backup-file-input" type="file" accept="application/json,.json" onChange={restoreBackup} />
+          <p className="backup-note">Googleへの同期は、保護者が希望するときに追加できる予定です。いまはアカウントなしで使えます。</p>
         </DialogContent>
       </Dialog>
 
