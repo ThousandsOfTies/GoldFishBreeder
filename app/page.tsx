@@ -336,7 +336,27 @@ function GoldfishCanvas({ shapeId, colorId, className = "" }: { shapeId: ShapeId
     tailGradient.addColorStop(0, `${palette.colors[0]}e8`);
     tailGradient.addColorStop(1, `${palette.colors[1]}88`);
     ctx.fillStyle = tailGradient;
-    if (shapeId === "wakin") {
+    if (shape.special === "butterfly") {
+      // 蝶尾は三つ尾を2枚、時計回り・反時計回りに15度ずつ開いて重ねる。
+      const drawButterflyTail = (angle: number, opacity: number) => {
+        ctx.save();
+        ctx.translate(tailRoot, bodyY);
+        ctx.rotate(angle);
+        ctx.globalAlpha = opacity;
+        ctx.beginPath();
+        ctx.moveTo(1, -5);
+        ctx.bezierCurveTo(-14, -35, -32, -38, -tailReach, -25);
+        ctx.bezierCurveTo(-tailReach + 6, -10, -tailReach - 6, -4, -tailReach, 0);
+        ctx.bezierCurveTo(-tailReach - 6, 4, -tailReach + 6, 10, -tailReach, 25);
+        ctx.bezierCurveTo(-32, 38, -14, 35, 1, 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      };
+      drawButterflyTail(-Math.PI / 12, 0.65);
+      drawButterflyTail(Math.PI / 12, 0.9);
+      ctx.beginPath();
+    } else if (shapeId === "wakin") {
       // 和金は中央で分かれた二つ尾。3枚目に見える中央のひれを作らない。
       ctx.beginPath();
       ctx.moveTo(tailRoot, bodyY - 2);
@@ -352,14 +372,8 @@ function GoldfishCanvas({ shapeId, colorId, className = "" }: { shapeId: ShapeId
     } else {
       ctx.beginPath();
       ctx.moveTo(tailRoot, bodyY);
-      if (shape.special === "butterfly") {
-      ctx.bezierCurveTo(tailRoot - tailReach * 0.75, 3, 6, 16, tailRoot - tailReach, 43);
-      ctx.bezierCurveTo(4, 48, 4, 52, tailRoot - tailReach, 57);
-      ctx.bezierCurveTo(8, 88, tailRoot - tailReach * 0.7, 98, tailRoot, bodyY + 5);
-      } else {
-        ctx.bezierCurveTo(tailRoot - tailReach * 0.55, 9, 12, 17, tailRoot - tailReach, 47);
-        ctx.bezierCurveTo(10, 78, tailRoot - tailReach * 0.52, 91, tailRoot, bodyY + 5);
-      }
+      ctx.bezierCurveTo(tailRoot - tailReach * 0.55, 9, 12, 17, tailRoot - tailReach, 47);
+      ctx.bezierCurveTo(10, 78, tailRoot - tailReach * 0.52, 91, tailRoot, bodyY + 5);
       ctx.closePath();
     }
     ctx.fill();

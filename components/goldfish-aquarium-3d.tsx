@@ -73,6 +73,16 @@ doubleTailLobeShape.quadraticCurveTo(-1.13, 0.24, -0.72, -0.1);
 doubleTailLobeShape.quadraticCurveTo(-0.3, -0.14, 0.08, 0);
 doubleTailLobeShape.closePath();
 
+// 蝶尾は三つ尾を2枚。前後に置き、左右へ約15度ずつ開いて蝶の羽のように見せる。
+const butterflyTailShape = new THREE.Shape();
+butterflyTailShape.moveTo(0.12, 0.2);
+butterflyTailShape.quadraticCurveTo(-0.34, 1.08, -1.08, 0.88);
+butterflyTailShape.quadraticCurveTo(-0.94, 0.42, -1.38, 0.16);
+butterflyTailShape.quadraticCurveTo(-1.1, 0, -1.38, -0.16);
+butterflyTailShape.quadraticCurveTo(-0.94, -0.42, -1.08, -0.88);
+butterflyTailShape.quadraticCurveTo(-0.34, -1.08, 0.12, -0.2);
+butterflyTailShape.closePath();
+
 // 背びれは角ではなく、水に揺れる薄い扇形にする。
 const dorsalFinShape = new THREE.Shape();
 dorsalFinShape.moveTo(-0.42, 0);
@@ -304,13 +314,18 @@ function GoldfishModel({ fish, index, total, onSelect, swimmers, preview = false
               <shapeGeometry args={[doubleTailLobeShape]} />
               <meshPhysicalMaterial color={palette.accent} transparent opacity={0.86} side={THREE.DoubleSide} roughness={0.32} clearcoat={0.66} />
             </mesh>
+          </> : style.tailStyle === "butterfly" ? <>
+            <mesh position={[-0.12, 0, -0.1]} rotation={[0, 0, -Math.PI / 12]}>
+              <shapeGeometry args={[butterflyTailShape]} />
+              <meshPhysicalMaterial color={palette.accent} transparent opacity={0.62} side={THREE.DoubleSide} roughness={0.32} clearcoat={0.66} />
+            </mesh>
+            <mesh position={[0, 0, 0.1]} rotation={[0, 0, Math.PI / 12]}>
+              <shapeGeometry args={[butterflyTailShape]} />
+              <meshPhysicalMaterial color={palette.accent} transparent opacity={0.84} side={THREE.DoubleSide} roughness={0.32} clearcoat={0.66} />
+            </mesh>
           </> : <mesh>
             <shapeGeometry args={[tailShape]} />
             <meshPhysicalMaterial color={palette.accent} transparent opacity={0.86} side={THREE.DoubleSide} roughness={0.32} clearcoat={0.66} />
-          </mesh>}
-          {style.tailStyle === "butterfly" && <mesh position={[-0.45, 0, -0.02]} rotation={[0, 0, Math.PI]} scale={[1, 1, 1]}>
-            <shapeGeometry args={[tailShape]} />
-            <meshPhysicalMaterial color={palette.accent} transparent opacity={0.72} side={THREE.DoubleSide} roughness={0.32} clearcoat={0.66} />
           </mesh>}
         </group>
 
