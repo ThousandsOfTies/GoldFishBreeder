@@ -30,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Toaster } from "@/components/ui/sonner";
+import { GoldfishAquarium3D } from "@/components/goldfish-aquarium-3d";
 import {
   Table,
   TableBody,
@@ -275,18 +276,6 @@ function GoldfishCanvas({ shapeId, colorId, className = "" }: { shapeId: ShapeId
   }, [shapeId, colorId]);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" />;
-}
-
-function fishPosition(fish: FishRecord, index: number) {
-  const hash = fish.seed * 31 + index * 17;
-  return {
-    left: 8 + (hash % 70),
-    top: 10 + ((hash * 7) % 55),
-    size: 84 + (hash % 38),
-    duration: 17 + (hash % 8),
-    delay: -(hash % 15),
-    reverse: hash % 2 === 0,
-  };
 }
 
 export default function HomePage() {
@@ -603,22 +592,11 @@ export default function HomePage() {
     <section className="game-stage">
       <div ref={aquariumRef} className={`aquarium ${viewingMode ? "is-viewing" : ""}`} aria-label={`${game.tankNames[game.activeTank]}。${activeTankFish.length}匹の金魚が泳いでいます`}>
         <div className="water-glow" />
-        {activeTankFish.map((fish, index) => {
-          const position = fishPosition(fish, index);
-          return (
-            <button
-              type="button"
-              key={fish.id}
-              className={`swimming-fish ${position.reverse ? "reverse" : ""} ${selectedFish?.id === fish.id ? "is-selected" : ""}`}
-              style={{ left: `${position.left}%`, top: `${position.top}%`, width: position.size, animationDelay: `${position.delay}s`, animationDuration: `${position.duration}s` }}
-              onClick={() => setSelectedFishId(fish.id)}
-              aria-label={`${displayName(fish)}をみる`}
-            >
-              <GoldfishCanvas shapeId={fish.shapeId} colorId={fish.colorId} />
-              <span className="fish-name">{displayName(fish)}</span>
-            </button>
-          );
-        })}
+        {activeTankFish.length > 0 && <GoldfishAquarium3D fish={activeTankFish} selectedFishId={selectedFish?.id} onSelect={setSelectedFishId} />}
+        {activeTankFish.length > 0 && <div className="three-aquarium-hint">金魚を クリックしてみよう</div>}
+        {activeTankFish.length > 0 && <div className="three-fish-picker" aria-label="水槽の金魚をえらぶ">
+          {activeTankFish.map((fish) => <button type="button" key={fish.id} className={selectedFish?.id === fish.id ? "is-selected" : ""} onClick={() => setSelectedFishId(fish.id)}>{displayName(fish)}</button>)}
+        </div>}
         {activeTankFish.length === 0 && (
           <div className="empty-tank">
             <Waves size={42} />
