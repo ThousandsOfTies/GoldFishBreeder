@@ -110,7 +110,7 @@ declare global {
 
 const SHAPES: Record<ShapeId, { label: string; short: string; rx: number; ry: number; tail: number; special?: "telescope" | "cap" | "ranchu" | "pearl" | "butterfly" | "ryukin" }> = {
   wakin: { label: "わきん", short: "すらり", rx: 49, ry: 24, tail: 0.95 },
-  ryukin: { label: "りゅうきん", short: "ひしがた", rx: 42, ry: 34, tail: 1.1, special: "ryukin" },
+  ryukin: { label: "りゅうきん", short: "ひしがた", rx: 42, ry: 31, tail: 1.1, special: "ryukin" },
   demekin: { label: "でめきん", short: "でめ", rx: 35, ry: 23, tail: 0.94, special: "telescope" },
   oranda: { label: "オランダ", short: "ふわ", rx: 43, ry: 31, tail: 1.12, special: "cap" },
   ranchu: { label: "らんちゅう", short: "ころ", rx: 44, ry: 31, tail: 0.92, special: "ranchu" },

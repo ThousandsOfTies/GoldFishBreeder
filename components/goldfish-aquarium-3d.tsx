@@ -34,7 +34,7 @@ type ColorStyle = {
 
 const SHAPES: Record<GoldfishShapeId, ShapeStyle> = {
   wakin: { body: [1.55, 0.72, 0.58], tail: [0.8, 0.86], dorsal: true, eyes: "normal", tailStyle: "double" },
-  ryukin: { body: [1.18, 1.06, 0.75], bodyStyle: "ryukin", tail: [0.95, 1.02], dorsal: true, eyes: "normal" },
+  ryukin: { body: [1.18, 0.95, 0.75], bodyStyle: "ryukin", tail: [0.95, 1.02], dorsal: true, eyes: "normal" },
   demekin: { body: [1.04, 0.68, 0.54], tail: [0.82, 0.9], dorsal: true, eyes: "telescope" },
   oranda: { body: [1.25, 0.95, 0.7], tail: [0.95, 1.05], dorsal: true, eyes: "normal", hood: true },
   ranchu: { body: [1.28, 0.9, 0.72], tail: [0.76, 0.82], dorsal: false, eyes: "normal" },
