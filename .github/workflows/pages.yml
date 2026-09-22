@@ -27,6 +27,8 @@ jobs:
         run: npm ci
       - name: Build static game
         run: npm run build:pages
+      - name: Verify inherited traits and save migration
+        run: npm run test:traits
       - name: Verify static assets
         run: npm run test:pages
       - name: Upload static site

@@ -35,27 +35,14 @@ import { Progress } from "@/components/ui/progress";
 import { Toaster } from "@/components/ui/sonner";
 import { GoldfishAquarium3D, GoldfishPreview3D } from "@/components/goldfish-aquarium-3d";
 
-type ShapeId = "wakin" | "ryukin" | "demekin" | "oranda" | "ranchu" | "comet" | "pearl" | "butterfly";
-type ColorId = "beni" | "sakura" | "sumi" | "tancho" | "milk" | "lemon" | "calico" | "lavender";
+import { appearanceFor, breedGenomes, COLOR_LABELS, forecastTraits, legacyGenome, LUSTER_LABELS, MARKING_LABELS, migrateSpeciesNames, migrateTraitFish, phenotypeFromGenome, speciesKey, TAIL_LABELS, visibleTraits, type ShapeId, type ColorId, type FishGenome, type Marking } from "@/lib/goldfish-traits";
+import { GoldfishFieldGuide } from "@/components/goldfish-field-guide";
+import { GoldfishDiagram } from "@/components/goldfish-diagram";
 type PatternId = "plain" | "patch" | "spots" | "cap" | "pearls" | "stripe" | "calico" | "cloud";
 type TankPlace = number | "rest";
 type ViewId = "aquarium" | "breed" | "book" | "tanks";
 type ParentSlot = "shape" | "color";
 type BreedPhase = "idle" | "mixing" | "result";
-type BodyAllele = "slender" | "tall" | "round";
-type TailAllele = "standard" | "long" | "butterfly";
-type OnOffAllele = "on" | "off";
-
-type FishGenome = {
-  body: [BodyAllele, BodyAllele];
-  tail: [TailAllele, TailAllele];
-  telescope: [OnOffAllele, OnOffAllele];
-  dorsal: [OnOffAllele, OnOffAllele];
-  hood: [OnOffAllele, OnOffAllele];
-  pearlScales: [OnOffAllele, OnOffAllele];
-  color: [ColorId, ColorId];
-};
-
 type FishRecord = {
   id: string;
   shapeId: ShapeId;
@@ -65,6 +52,7 @@ type FishRecord = {
   parents?: [string, string];
   seed: number;
   genome?: FishGenome;
+  marking?: Marking;
 };
 
 type GameState = {
@@ -135,8 +123,8 @@ const BLACK_DEMEKIN_PALETTE: { label: string; short: string; colors: [string, st
   label: "くろ", short: "くろ", colors: ["#070a0c", "#070a0c"], pattern: "plain",
 };
 
-const colorLabelFor = (fish: Pick<FishRecord, "shapeId" | "colorId">) =>
-  fish.shapeId === "demekin" && fish.colorId === "sumi" ? "くろ" : COLORS[fish.colorId].label;
+const colorLabelFor = (fish: FishRecord) =>
+  `${COLOR_LABELS[fish.colorId]}・${MARKING_LABELS[appearanceFor(fish).marking]}`;
 
 const BASE_PARENTS: { shapeId: ShapeId; colorId: ColorId; name: string; unlockAt: number }[] = [
   { shapeId: "wakin", colorId: "beni", name: "わきん", unlockAt: 0 },
@@ -154,113 +142,15 @@ const INITIAL_TANK_NAMES = [
   "もりの すいそう", "つきの すいそう", "さくらの すいそう", "にじの すいそう", "おまつり すいそう",
 ];
 
-const speciesKey = (shapeId: ShapeId, colorId: ColorId) => `${shapeId}__${colorId}`;
-
-const pair = <T,>(value: T): [T, T] => [value, value];
-
-function legacyGenome(shapeId: ShapeId, colorId: ColorId): FishGenome {
-  const base: FishGenome = {
-    body: pair("slender"), tail: pair("standard"), telescope: pair("off"), dorsal: pair("on"),
-    hood: pair("off"), pearlScales: pair("off"), color: pair(colorId),
-  };
-  if (shapeId === "ryukin") base.body = pair("tall");
-  if (shapeId === "demekin") base.telescope = pair("on");
-  if (shapeId === "oranda") { base.body = pair("tall"); base.hood = pair("on"); }
-  if (shapeId === "ranchu") { base.body = pair("round"); base.dorsal = pair("off"); }
-  if (shapeId === "comet") base.tail = pair("long");
-  if (shapeId === "pearl") { base.body = pair("round"); base.pearlScales = pair("on"); }
-  if (shapeId === "butterfly") { base.body = pair("tall"); base.tail = pair("butterfly"); }
-  return base;
-}
-
-function genomeFor(fish: FishRecord): FishGenome {
-  return fish.genome ?? legacyGenome(fish.shapeId, fish.colorId);
-}
-
 function migrateGame(saved: GameState): GameState | null {
   if (!Array.isArray(saved.fish) || saved.tankNames?.length !== 10 || typeof saved.breedCount !== "number") return null;
-  return {
-    ...saved,
-    version: 2,
-    fish: saved.fish.map((fish) => ({ ...fish, genome: genomeFor(fish) })),
-  };
-}
-
-function inherits<T,>(first: [T, T], second: [T, T]): [T, T] {
-  return [first[Math.floor(Math.random() * 2)], second[Math.floor(Math.random() * 2)]];
-}
-
-function hasDouble(genome: [OnOffAllele, OnOffAllele], value: OnOffAllele) {
-  return genome[0] === value && genome[1] === value;
-}
-
-function phenotypeFromGenome(genome: FishGenome): { shapeId: ShapeId; colorId: ColorId } {
-  if (hasDouble(genome.telescope, "on")) return { shapeId: "demekin", colorId: genome.color[Math.floor(Math.random() * 2)] };
-  if (hasDouble(genome.hood, "on")) return { shapeId: "oranda", colorId: genome.color[Math.floor(Math.random() * 2)] };
-  if (hasDouble(genome.dorsal, "off")) return { shapeId: "ranchu", colorId: genome.color[Math.floor(Math.random() * 2)] };
-  if (genome.body[0] === "round" && genome.body[1] === "round" && hasDouble(genome.pearlScales, "on")) return { shapeId: "pearl", colorId: genome.color[Math.floor(Math.random() * 2)] };
-  if (genome.tail[0] === "butterfly" && genome.tail[1] === "butterfly") return { shapeId: "butterfly", colorId: genome.color[Math.floor(Math.random() * 2)] };
-  if (genome.tail[0] === "long" && genome.tail[1] === "long") return { shapeId: "comet", colorId: genome.color[Math.floor(Math.random() * 2)] };
-  if (genome.body[0] === "tall" && genome.body[1] === "tall") return { shapeId: "ryukin", colorId: genome.color[Math.floor(Math.random() * 2)] };
-  return { shapeId: "wakin", colorId: genome.color[Math.floor(Math.random() * 2)] };
-}
-
-function breedGenomes(first: FishRecord, second: FishRecord): FishGenome {
-  const a = genomeFor(first);
-  const b = genomeFor(second);
-  return {
-    body: inherits(a.body, b.body), tail: inherits(a.tail, b.tail), telescope: inherits(a.telescope, b.telescope),
-    dorsal: inherits(a.dorsal, b.dorsal), hood: inherits(a.hood, b.hood), pearlScales: inherits(a.pearlScales, b.pearlScales),
-    color: inherits(a.color, b.color),
-  };
-}
-
-function visibleTraits(fish: FishRecord) {
-  const genome = genomeFor(fish);
-  const traits = [
-    SHAPES[fish.shapeId].label,
-    hasDouble(genome.telescope, "on") ? "出目" : "普通の目",
-    hasDouble(genome.dorsal, "off") ? "背びれなし" : "背びれあり",
-    hasDouble(genome.hood, "on") ? "肉瘤あり" : "肉瘤なし",
-    hasDouble(genome.pearlScales, "on") ? "パール鱗" : "なめらか鱗",
-  ];
-  return traits;
-}
-
-function alleleChance<T,>(pair: [T, T], allele: T) {
-  return pair.filter((item) => item === allele).length / 2;
-}
-
-function doubleTraitChance(first: FishRecord, second: FishRecord, trait: keyof Pick<FishGenome, "telescope" | "dorsal" | "hood" | "pearlScales">, allele: OnOffAllele) {
-  return alleleChance(genomeFor(first)[trait], allele) * alleleChance(genomeFor(second)[trait], allele);
-}
-
-function forecastTraits(first: FishRecord, second: FishRecord) {
-  const a = genomeFor(first);
-  const b = genomeFor(second);
-  const row = (label: string, chance: number): [string, number] => [label, chance];
-  const predictions = [
-    row("出目", doubleTraitChance(first, second, "telescope", "on")),
-    row("背びれなし", doubleTraitChance(first, second, "dorsal", "off")),
-    row("肉瘤あり", doubleTraitChance(first, second, "hood", "on")),
-    row("パール鱗", doubleTraitChance(first, second, "pearlScales", "on")),
-    row("玉型", alleleChance(a.body, "round") * alleleChance(b.body, "round")),
-    row("琉金型", alleleChance(a.body, "tall") * alleleChance(b.body, "tall")),
-    row("蝶尾", alleleChance(a.tail, "butterfly") * alleleChance(b.tail, "butterfly")),
-    row("長い尾", alleleChance(a.tail, "long") * alleleChance(b.tail, "long")),
-  ].filter(([, chance]) => chance > 0);
-
-  const colors = new Map<ColorId, number>();
-  for (const parentColor of a.color) for (const otherColor of b.color) {
-    colors.set(parentColor, (colors.get(parentColor) ?? 0) + 0.25);
-    colors.set(otherColor, (colors.get(otherColor) ?? 0) + 0.25);
-  }
-  const colorPredictions = [...colors.entries()].map(([color, chance]) => [COLORS[color].label, chance / 2] as [string, number]);
-  return { predictions, colorPredictions };
+  if (!saved.fish.every((fish) => fish && fish.shapeId in SHAPES && fish.colorId in COLORS)) return null;
+  const fish = saved.fish.map(migrateTraitFish);
+  return { ...saved, version: 3, fish, speciesNames: migrateSpeciesNames(fish, saved.speciesNames ?? {}) };
 }
 
 const initialGame = (): GameState => ({
-  version: 2,
+  version: 3,
   fish: [
     { id: "wakin-1", shapeId: "wakin", colorId: "beni", tank: 0, bornAt: 0, seed: 11 },
     { id: "ryukin-1", shapeId: "ryukin", colorId: "sakura", tank: 0, bornAt: 0, seed: 27 },
@@ -269,9 +159,9 @@ const initialGame = (): GameState => ({
     { id: "ryukin-2", shapeId: "ryukin", colorId: "sakura", tank: 1, bornAt: 0, seed: 82 },
   ],
   speciesNames: {
-    [speciesKey("wakin", "beni")]: "わきん",
-    [speciesKey("ryukin", "sakura")]: "りゅうきん",
-    [speciesKey("demekin", "sumi")]: "でめきん",
+    [speciesKey({ shapeId: "wakin", colorId: "beni" })]: "わきん",
+    [speciesKey({ shapeId: "ryukin", colorId: "sakura" })]: "りゅうきん",
+    [speciesKey({ shapeId: "demekin", colorId: "sumi" })]: "でめきん",
   },
   tankNames: INITIAL_TANK_NAMES,
   breedCount: 0,
@@ -503,7 +393,7 @@ export default function HomePage() {
             discoveredSpecies: Object.values(game.speciesNames),
             fish: game.fish.map((fish) => ({
               id: fish.id,
-              name: game.speciesNames[speciesKey(fish.shapeId, fish.colorId)] ?? "なまえのない金魚",
+              name: game.speciesNames[speciesKey(fish)] ?? "なまえのない金魚",
               shape: SHAPES[fish.shapeId].label,
               colorAndPattern: colorLabelFor(fish),
               location: fish.tank === "rest" ? "おやすみ池" : game.tankNames[fish.tank],
@@ -514,12 +404,12 @@ export default function HomePage() {
     };
     const chooseParentsTool: WebMcpTool = {
       name: "select_breeding_parents",
-      description: "Select two different owned fish as the shape parent and color parent, then open the breeding screen. This does not start breeding.",
+      description: "Select two different owned fish as breeding parents, then open the breeding screen. Both parents contribute all traits. This does not start breeding.",
       inputSchema: {
         type: "object",
         properties: {
-          shapeParentId: { type: "string", description: "Fish ID that passes on body shape and tail." },
-          colorParentId: { type: "string", description: "Different fish ID that passes on color and pattern." },
+          shapeParentId: { type: "string", description: "First parent fish ID; contributes all traits." },
+          colorParentId: { type: "string", description: "Different second parent fish ID; contributes all traits." },
         },
         required: ["shapeParentId", "colorParentId"],
         additionalProperties: false,
@@ -538,7 +428,7 @@ export default function HomePage() {
         setBreedPhase("idle");
         setBirthSummary(null);
         setView("breed");
-        return { content: [{ type: "text", text: `${game.speciesNames[speciesKey(shapeFish.shapeId, shapeFish.colorId)]} and ${game.speciesNames[speciesKey(colorFish.shapeId, colorFish.colorId)]} are selected. The player can review the inherited traits and start breeding.` }] };
+        return { content: [{ type: "text", text: `${game.speciesNames[speciesKey(shapeFish)]} and ${game.speciesNames[speciesKey(colorFish)]} are selected. The player can review the inherited traits and start breeding.` }] };
       },
     };
     void modelContext.registerTool(statusTool, { signal: controller.signal }).catch(() => undefined);
@@ -572,7 +462,7 @@ export default function HomePage() {
   const progressStep = allParentsUnlocked ? 5 : game.breedCount % 5;
   const progressValue = allParentsUnlocked ? 100 : (progressStep / 5) * 100;
 
-  const displayName = (fish: FishRecord) => game.speciesNames[speciesKey(fish.shapeId, fish.colorId)] ?? "なまえのない金魚";
+  const displayName = (fish: FishRecord) => game.speciesNames[speciesKey(fish)] ?? "なまえのない金魚";
   const placeName = (place: TankPlace) => place === "rest" ? "おやすみ池" : game.tankNames[place];
 
   const goToTank = (tank: number) => {
@@ -608,7 +498,7 @@ export default function HomePage() {
   };
 
   const finishBirth = (newFish: FishRecord, chosenName: string, isNewSpecies: boolean) => {
-    const key = speciesKey(newFish.shapeId, newFish.colorId);
+    const key = speciesKey(newFish);
     const cleanName = chosenName.trim() || nameIdeas(newFish.shapeId, newFish.colorId)[0];
     const destination = firstOpenTank(game.fish, game.activeTank);
     const child = { ...newFish, tank: destination };
@@ -619,7 +509,7 @@ export default function HomePage() {
     let unlockedName: string | undefined;
 
     if (unlocking) {
-      const unlockKey = speciesKey(unlocking.shapeId, unlocking.colorId);
+      const unlockKey = speciesKey(unlocking);
       const unlockDestination = firstOpenTank(nextFish, game.activeTank);
       nextFish = [
         ...nextFish,
@@ -637,7 +527,7 @@ export default function HomePage() {
       unlockedName = unlocking.name;
     }
 
-    const speciesNumber = nextFish.filter((fish) => speciesKey(fish.shapeId, fish.colorId) === key).length;
+    const speciesNumber = nextFish.filter((fish) => speciesKey(fish) === key).length;
     setGame({ ...game, fish: nextFish, speciesNames: nextNames, breedCount: nextBreedCount });
     setPendingBirth(null);
     setNameOpen(false);
@@ -654,13 +544,14 @@ export default function HomePage() {
       id: randomId("fish"),
       shapeId: phenotype.shapeId,
       colorId: phenotype.colorId,
+      marking: phenotype.marking,
       genome,
       tank: "rest",
       bornAt: Date.now(),
       parents: [shapeParent.id, colorParent.id],
       seed: Math.floor(Math.random() * 997),
     };
-    const key = speciesKey(child.shapeId, child.colorId);
+    const key = speciesKey(child);
     const knownName = game.speciesNames[key];
     if (knownName) {
       finishBirth(child, knownName, false);
@@ -845,11 +736,14 @@ export default function HomePage() {
             <p className="eyebrow">この金魚</p>
             <div className="selected-fish"><GoldfishPreview3D fish={selectedFish} /></div>
             <h2>{displayName(selectedFish)}</h2>
-            <p className="species-label">{game.fish.filter((fish) => speciesKey(fish.shapeId, fish.colorId) === speciesKey(selectedFish.shapeId, selectedFish.colorId)).length}ひき いるよ</p>
+            <p className="species-label">{game.fish.filter((fish) => speciesKey(fish) === speciesKey(selectedFish)).length}ひき いるよ</p>
             <dl>
-              <div><dt>かたち</dt><dd>{SHAPES[selectedFish.shapeId].label}</dd></div>
-              <div><dt>いろ・もよう</dt><dd>{colorLabelFor(selectedFish)}</dd></div>
-              <div><dt>見える形質</dt><dd className="traits-value">{visibleTraits(selectedFish).slice(1).join("・")}</dd></div>
+              <div><dt>体形</dt><dd>{visibleTraits(selectedFish)[0]}</dd></div>
+              <div><dt>尾の形</dt><dd>{TAIL_LABELS[appearanceFor(selectedFish).tail]}</dd></div>
+              <div><dt>うろこ</dt><dd>{appearanceFor(selectedFish).pearlScales ? "パール鱗・" : ""}{LUSTER_LABELS[appearanceFor(selectedFish).luster]}</dd></div>
+              <div><dt>色</dt><dd>{COLOR_LABELS[selectedFish.colorId]}</dd></div>
+              <div><dt>もよう</dt><dd>{MARKING_LABELS[appearanceFor(selectedFish).marking]}</dd></div>
+              <div><dt>目・頭・背びれ</dt><dd className="traits-value">{visibleTraits(selectedFish).slice(2, 5).join("・")}</dd></div>
               <div><dt>うまれた日</dt><dd>{selectedFish.bornAt ? new Intl.DateTimeFormat("ja-JP", { month: "numeric", day: "numeric" }).format(selectedFish.bornAt) : "さいしょから"}</dd></div>
             </dl>
             <div className="panel-actions">
@@ -870,7 +764,7 @@ export default function HomePage() {
       <section className="workspace breed-workspace">
         <div className="workspace-heading">
           <div><p className="eyebrow">おやから 1つずつ うけつぐよ</p><h2>2ひきの おやを えらぼう</h2></div>
-          <p>からだ・尾・目・うろこ・色を、<strong>ふたりのおや</strong>から 1つずつ うけつぎます。</p>
+          <p>体形・尾・目・うろこ・色・もようを、<strong>ふたりのおや</strong>から うけつぎます。</p>
         </div>
 
         {breedPhase === "result" && birthSummary ? (
@@ -912,7 +806,7 @@ export default function HomePage() {
             </div>
 
             {shapeParent && colorParent && <div className="inheritance-explainer">
-              <Sparkles size={18} /><div><strong>今回のルール</strong><span>からだ・尾・目・背びれ・肉瘤・うろこ・色は、それぞれのおやから遺伝子を1つずつ受け取ります。2つそろうと出やすい形質もあります。</span></div>
+              <Sparkles size={18} /><div><strong>今回のルール</strong><span>それぞれのおやから、特徴のもとを1つずつ受け取ります。色・もよう・鱗のつやは別々に決まります。目・尾などは2つそろうと出る特徴もあります。</span></div>
             </div>}
 
             {forecast && <section className="trait-forecast" aria-label="この交配で生まれる形質の予想">
@@ -920,7 +814,10 @@ export default function HomePage() {
               <div className="forecast-chips">
                 {forecast.predictions.length > 0 ? forecast.predictions.map(([label, chance]) => <span key={label}><strong>{label}</strong><em>{Math.round(chance * 100)}%</em></span>) : <span><strong>基本形質</strong><em>出やすい</em></span>}
               </div>
-              <p className="forecast-colors">色の候補：{forecast.colorPredictions.map(([label, chance]) => `${label} ${Math.round(chance * 100)}%`).join(" ／ ")}</p>
+              <p className="forecast-colors">色：{forecast.colorPredictions.map(([label, chance]) => `${label} ${Math.round(chance * 100)}%`).join(" ／ ")}</p>
+              <p className="forecast-colors">もよう：{forecast.markingPredictions.map(([label, chance]) => `${label} ${Math.round(chance * 100)}%`).join(" ／ ")}</p>
+              <p className="forecast-colors">鱗のつや：{forecast.lusterPredictions.map(([label, chance]) => `${label} ${Math.round(chance * 100)}%`).join(" ／ ")}</p>
+              <p className="game-rule-note">この数字はゲームのルールです。本物の金魚の交配確率ではありません。親とちがう特徴の組合せも生まれます。</p>
             </section>}
 
             <div className="parent-picker">
@@ -948,7 +845,7 @@ export default function HomePage() {
 
   const renderBook = () => {
     const discoveredFish = Object.entries(game.speciesNames).map(([key, name]) => {
-      const example = game.fish.find((fish) => speciesKey(fish.shapeId, fish.colorId) === key);
+      const example = game.fish.find((fish) => speciesKey(fish) === key);
       return example ? { key, name, fish: example } : null;
     }).filter((item): item is { key: string; name: string; fish: FishRecord } => Boolean(item));
     return (
@@ -957,11 +854,13 @@ export default function HomePage() {
           <div><p className="eyebrow">見つけた 形質と くみあわせ</p><h2>きんぎょずかん</h2></div>
           <div className="discovery-count"><strong>{discoveredFish.length}</strong><span>しゅるい</span></div>
         </div>
+        <GoldfishFieldGuide />
+        <h3 className="collection-title">わたしの コレクション</h3>
         <div className="book-rule"><span className="shape-chip">おやAの遺伝子</span><Plus /><span className="color-chip">おやBの遺伝子</span><ArrowRight /><strong>新しい形質の組合せ</strong></div>
-        <div className="genetics-guide"><Sparkles size={18} /><span>目・尾・背びれ・肉瘤・パール鱗などは、遺伝子が2つそろうと見た目に出やすいよ。</span></div>
+        <div className="genetics-guide"><Sparkles size={18} /><span>ゲームでは、形・色・もよう・鱗のつやを組み合わせるよ。ちがう見た目には、ちがう名前をつけられるよ。</span></div>
         <div className="trait-book-grid">
           {discoveredFish.map(({ key, name, fish }) => <article key={key} className="trait-book-card">
-            <GoldfishCanvas shapeId={fish.shapeId} colorId={fish.colorId} />
+            <GoldfishDiagram fish={fish} />
             <div><strong>{name}</strong><small>{visibleTraits(fish).join(" ・ ")}</small></div>
           </article>)}
         </div>
@@ -989,7 +888,7 @@ export default function HomePage() {
                   backgroundImage: `linear-gradient(rgba(2, 35, 46, 0.23), rgba(2, 26, 37, 0.2)), url("${import.meta.env.BASE_URL}aquarium-bg-${tank}.png")`,
                 }}
               >
-                {residents.slice(0, 4).map((fish) => <GoldfishCanvas key={fish.id} shapeId={fish.shapeId} colorId={fish.colorId} />)}
+                {residents.slice(0, 4).map((fish) => <GoldfishDiagram key={fish.id} fish={fish} />)}
                 {residents.length === 0 && <Waves />}
               </div>
               <div className="tank-card-copy"><span>すいそう {tank + 1}</span><strong>{name}</strong><small>{residents.length} / 10 ひき</small></div>
@@ -999,7 +898,7 @@ export default function HomePage() {
       </div>
       <div className="rest-pond">
         <div className="rest-copy"><span className="rest-icon"><Waves /></span><div><p className="eyebrow">いっぱいに なっても あんしん</p><h3>おやすみ池</h3><p>ここにいる金魚も、おやに えらべます。</p></div><strong>{restFish.length} ひき</strong></div>
-        {restFish.length > 0 ? <div className="rest-fish-grid">{restFish.map((fish) => <button type="button" key={fish.id} onClick={() => { setSelectedFishId(fish.id); setMoveOpen(true); }}><GoldfishCanvas shapeId={fish.shapeId} colorId={fish.colorId} /><span>{displayName(fish)}</span></button>)}</div> : <p className="rest-empty">いまは だれも いません。</p>}
+        {restFish.length > 0 ? <div className="rest-fish-grid">{restFish.map((fish) => <button type="button" key={fish.id} onClick={() => { setSelectedFishId(fish.id); setMoveOpen(true); }}><GoldfishDiagram fish={fish} /><span>{displayName(fish)}</span></button>)}</div> : <p className="rest-empty">いまは だれも いません。</p>}
       </div>
     </section>
   );
@@ -1035,7 +934,7 @@ export default function HomePage() {
       <Dialog open={nameOpen} onOpenChange={() => undefined}>
         <DialogContent className="game-dialog naming-dialog" showCloseButton={false} onPointerDownOutside={(event) => event.preventDefault()} onEscapeKeyDown={(event) => event.preventDefault()}>
           <DialogHeader><DialogTitle>しんしゅ はっけん！</DialogTitle><DialogDescription>この しゅるいに、すてきな名前を つけてね。</DialogDescription></DialogHeader>
-          {pendingBirth && <div className="newborn-preview"><Sparkles /><GoldfishCanvas shapeId={pendingBirth.shapeId} colorId={pendingBirth.colorId} /></div>}
+          {pendingBirth && <div className="newborn-preview"><Sparkles /><GoldfishPreview3D fish={pendingBirth} /></div>}
           <form onSubmit={submitName}>
             <label htmlFor="species-name">金魚の なまえ</label>
             <Input id="species-name" value={nameDraft} onChange={(event) => setNameDraft(event.target.value.slice(0, 12))} maxLength={12} autoFocus />

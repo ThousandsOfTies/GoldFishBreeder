@@ -3,6 +3,7 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { appearanceFor, type FishGenome, type Marking } from "@/lib/goldfish-traits";
 
 export type GoldfishShapeId = "wakin" | "ryukin" | "demekin" | "oranda" | "ranchu" | "comet" | "pearl" | "butterfly";
 export type GoldfishColorId = "beni" | "sakura" | "sumi" | "tancho" | "milk" | "lemon" | "calico" | "lavender";
@@ -12,6 +13,8 @@ export type ThreeGoldfish = {
   shapeId: GoldfishShapeId;
   colorId: GoldfishColorId;
   seed: number;
+  genome?: FishGenome;
+  marking?: Marking;
 };
 
 type ShapeStyle = {
@@ -56,6 +59,40 @@ const COLORS: Record<GoldfishColorId, ColorStyle> = {
 
 // 最初からいる出目金は、模様なしの黒出目金にする。
 const BLACK_DEMEKIN: ColorStyle = { base: "#070a0c", accent: "#070a0c", pattern: "plain" };
+
+function styleFor(fish: ThreeGoldfish): ShapeStyle {
+  const a = appearanceFor(fish);
+  let bodyStyle = a.body === "round" ? SHAPES.pearl : a.body === "tall" ? SHAPES.ryukin : SHAPES.wakin;
+  if (a.body === "slender" && a.telescope) bodyStyle = SHAPES.demekin;
+  if (a.body === "tall" && a.hood) bodyStyle = SHAPES.oranda;
+  if (a.body === "round" && !a.dorsal) bodyStyle = SHAPES.ranchu;
+  const tailStyle = a.tail === "funa" ? SHAPES.wakin : a.tail === "long" ? SHAPES.comet : a.tail === "butterfly" ? SHAPES.butterfly : SHAPES.ryukin;
+  return { ...bodyStyle, tail: tailStyle.tail, tailStyle: a.tail === "long" ? "double" : tailStyle.tailStyle, dorsal: a.dorsal, eyes: a.telescope ? "telescope" : "normal", hood: a.hood, pearlScales: a.pearlScales };
+}
+
+function paletteFor(fish: ThreeGoldfish): ColorStyle {
+  const a = appearanceFor(fish);
+  const base = COLORS[fish.colorId];
+  if (a.marking === "solid") return fish.colorId === "sumi" ? BLACK_DEMEKIN : { ...base, accent: base.base, pattern: "plain" };
+  if (a.marking === "tancho") return { base: "#f5eee1", accent: "#df503b", pattern: "cap" };
+  if (a.marking === "calico") return { ...base, accent: "#ed693a", extra: "#18242a", pattern: "calico" };
+  if (a.marking === "redBlack") return { ...base, accent: fish.colorId === "sumi" ? "#e97443" : "#17232a", pattern: "spots" };
+  return { ...base, accent: "#fff3e1", pattern: "patch" };
+}
+
+function ScaleSheen({ fish, body }: { fish: ThreeGoldfish; body: ShapeStyle["body"] }) {
+  const a = appearanceFor(fish);
+  if (a.luster === "metallic" || a.luster === "transparent") return null;
+  return <group>{[-0.55, -0.28, 0, 0.28, 0.55].flatMap((x, column) => [-0.38, 0, 0.38].map((y, row) => {
+    if (a.luster === "mosaic" && (column + row) % 2) return null;
+    const adjustedY = y + (column % 2 ? 0.07 : 0);
+    const z = body[2] * Math.sqrt(Math.max(0, 1 - x * x - adjustedY * adjustedY)) + 0.035;
+    return <mesh key={`${column}-${row}`} position={[body[0] * x, body[1] * adjustedY, z]} scale={[0.075, 0.09, 0.015]}>
+      <sphereGeometry args={[1, 8, 6]} />
+      <meshStandardMaterial color="#d7e7e4" metalness={0.72} roughness={0.25} transparent opacity={a.luster === "net" ? 0.52 : 0.8} />
+    </mesh>;
+  }))}</group>;
+}
 
 const tailShape = new THREE.Shape();
 tailShape.moveTo(0.08, 0.18);
@@ -223,8 +260,9 @@ function GoldfishModel({ fish, index, total, onSelect, swimmers, preview = false
   const tail = useRef<THREE.Group>(null);
   const fins = useRef<THREE.Group>(null);
   const swim = useRef<SwimState | null>(null);
-  const style = SHAPES[fish.shapeId];
-  const palette = fish.shapeId === "demekin" && fish.colorId === "sumi" ? BLACK_DEMEKIN : COLORS[fish.colorId];
+  const style = styleFor(fish);
+  const palette = paletteFor(fish);
+  const appearance = appearanceFor(fish);
   const phase = (fish.seed % 360) * (Math.PI / 180);
   const densityScale = total >= 8 ? 0.34 : total >= 5 ? 0.4 : total >= 3 ? 0.5 : 0.62;
   const personalSpace = densityScale * (style.tailStyle ? 1.42 : style.body[0] > 1.5 ? 1.28 : 1.12);
@@ -295,13 +333,14 @@ function GoldfishModel({ fish, index, total, onSelect, swimmers, preview = false
       <group>
         <mesh scale={style.body} castShadow receiveShadow>
           {style.bodyStyle === "ryukin" ? <primitive object={ryukinBodyGeometry} attach="geometry" /> : <sphereGeometry args={[1, 28, 18]} />}
-          <meshPhysicalMaterial color={palette.base} roughness={0.36} metalness={0.04} clearcoat={0.72} clearcoatRoughness={0.26} />
+          <meshPhysicalMaterial color={palette.base} roughness={appearance.luster === "transparent" ? 0.82 : 0.36} metalness={appearance.luster === "metallic" ? 0.28 : 0.02} clearcoat={appearance.luster === "transparent" ? 0.12 : 0.72} clearcoatRoughness={0.26} />
         </mesh>
         <mesh position={[style.body[0] * 0.14, style.body[1] * 0.36, style.body[2] * 0.86]} scale={[0.32, 0.16, 0.025]}>
           <sphereGeometry args={[1, 16, 10]} />
-          <meshBasicMaterial color="#fffdf0" transparent opacity={0.42} />
+          <meshBasicMaterial color="#fffdf0" transparent opacity={appearance.luster === "transparent" ? 0.1 : 0.42} />
         </mesh>
         <PalettePattern style={palette} body={style.body} />
+        <ScaleSheen fish={fish} body={style.body} />
         {style.pearlScales && <PearlScales body={style.body} />}
 
         <group ref={tail} position={[-style.body[0] * 0.84, 0, -0.015]} scale={[style.tail[0], style.tail[1], 1]}>
@@ -407,8 +446,8 @@ export function GoldfishAquarium3D({ fish, onSelect }: { fish: ThreeGoldfish[]; 
 }
 
 function GoldfishPreviewFallback({ fish }: { fish: ThreeGoldfish }) {
-  const shape = SHAPES[fish.shapeId];
-  const color = fish.shapeId === "demekin" && fish.colorId === "sumi" ? BLACK_DEMEKIN : COLORS[fish.colorId];
+  const shape = styleFor(fish);
+  const color = paletteFor(fish);
   const [bodyWidth, bodyHeight] = [shape.body[0] * 33, shape.body[1] * 34];
   const eyeRadius = shape.eyes === "telescope" ? 9 : 5;
 
@@ -416,11 +455,11 @@ function GoldfishPreviewFallback({ fish }: { fish: ThreeGoldfish }) {
     <svg className="goldfish-preview-fallback" viewBox="0 0 180 100" role="img" aria-label="金魚の予備表示">
       <path d="M55 50 C36 28, 20 25, 7 18 C12 37, 12 63, 7 82 C20 75, 36 72, 55 50Z" fill={color.accent} opacity="0.92" />
       <ellipse cx="99" cy="50" rx={bodyWidth} ry={bodyHeight} fill={color.base} />
-      <ellipse cx="114" cy="42" rx={bodyWidth * 0.48} ry={bodyHeight * 0.5} fill={color.accent} opacity="0.84" />
+      {color.pattern !== "plain" && <ellipse cx="114" cy="42" rx={bodyWidth * 0.48} ry={bodyHeight * 0.5} fill={color.accent} opacity="0.84" />}
       {shape.hood && <circle cx="128" cy="31" r="13" fill={color.accent} />}
       <circle cx="131" cy="42" r={eyeRadius} fill="#070a0c" />
       {shape.eyes === "telescope" && <circle cx="126" cy="60" r={eyeRadius} fill="#070a0c" />}
-      <path d="M91 22 Q104 4 118 21" fill={color.accent} opacity="0.8" />
+      {shape.dorsal && <path d="M91 22 Q104 4 118 21" fill={color.accent} opacity="0.8" />}
       <path d="M101 76 Q110 88 124 76" fill={color.accent} opacity="0.72" />
     </svg>
   );

@@ -207,6 +207,70 @@ button { font: inherit; }
 .locked-parents svg { width: 17px; color: #ffda82; }
 
 /* Tank list */
+.game-rule-note { color: #c5dfe0; font-size: .76rem; line-height: 1.7; }
+.field-guide { margin-bottom: 28px; }
+.guide-intro { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 24px; border: 1px solid #588c88; border-radius: 20px; background: linear-gradient(125deg, #174c55, #193d47); }
+.guide-intro h3 { margin: 8px 0; color: #fff0be; font-size: 1.5rem; }
+.guide-intro p:last-child { margin: 0; color: #d0e4e0; line-height: 1.7; }
+.guide-emblem { flex-shrink: 0; display: grid; place-content: center; width: 84px; height: 84px; border: 1px solid #b7bc86; border-radius: 50%; color: #ffe5a7; text-align: center; font-size: 1rem; transform: rotate(8deg); }
+.guide-navigation { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; }
+.guide-navigation button { padding: 10px 16px; border: 1px solid #44767b; border-radius: 10px; background: #123641; color: #d2eeee; cursor: pointer; font-weight: 700; }
+.guide-navigation button[aria-pressed="true"] { background: #a8e9da; color: #0e363c; border-color: #a8e9da; }
+.guide-navigation button:focus-visible, .lab-controls select:focus-visible, .lab-controls input:focus-visible { outline: 3px solid #ffe39e; outline-offset: 3px; }
+.guide-section > h3 { font-size: 1.35rem; color: #fff0be; margin: 8px 0; }
+.guide-section-intro { color: #bcd8d9; margin: 0 0 18px; line-height: 1.7; }
+.guide-entry-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(225px, 1fr)); gap: 14px; }
+.guide-entry { overflow: hidden; border: 1px solid #35626c; border-radius: 16px; background: #103440; }
+.guide-picture { height: 120px; display: grid; place-items: center; background: radial-gradient(ellipse at center, #2b6069, #123842); }
+.guide-picture svg { width: 175px; height: 108px; }
+.guide-entry-copy { padding: 14px 16px; }
+.guide-entry h4 { margin: 8px 0 2px; font-size: 1.06rem; color: #ffebb3; }
+.guide-entry small { color: #a7cfcc; font-size: .75rem; }
+.guide-entry p { color: #d2e4e2; font-size: .84rem; line-height: 1.8; margin: 9px 0 0; }
+.guide-tag { font-size: .66rem; border: 1px solid #5c787e; color: #bed4d7; border-radius: 12px; padding: 3px 8px; }
+.guide-tag.available { color: #a9efd4; border-color: #488e7d; }
+.guide-callout { margin: 18px 0; padding: 14px 18px; border-left: 3px solid #f4cf84; color: #f0e5c4; background: #273f41; line-height: 1.8; font-size: .86rem; }
+.guide-footnote { color: #9ebdc2; line-height: 1.7; font-size: .76rem; }
+.guide-color-sample { width: 94px; height: 76px; border-radius: 50%; position: relative; box-shadow: inset -10px -10px 20px #0002; }
+.guide-color-sample span { position: absolute; width: 35px; height: 9px; border-radius: 50%; background: #fff5; top: 16px; left: 15px; transform: rotate(-20deg); }
+.guide-scales-sample { display: grid; grid-template-columns: repeat(5, 19px); gap: 3px; background: #c56840; padding: 7px; border-radius: 24px; }
+.guide-scales-sample i { width: 19px; height: 17px; border-radius: 3px 3px 50% 50%; background: linear-gradient(145deg, #ffeed4, #c98d5b 55%, #7c502b); border: 1px solid #ffd99a88; }
+.scale-transparent i { background: #d9866e; border-color: #dca48466; }
+.scale-net i { background: linear-gradient(90deg, #ded8c6 35%, #d9866e 38%); }
+.scale-mosaic i:nth-child(even) { background: #d9866e; border-color: transparent; }
+.scale-pearl i { border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fffcea, #dfc09a 65%, #a7774c); }
+.history-branches, .history-crosses { display: grid; grid-template-columns: repeat(auto-fit, minmax(225px, 1fr)); gap: 14px; }
+.history-branches article, .history-crosses article { padding: 18px; border: 1px solid #3d6973; border-radius: 14px; background: #113640; }
+.history-branches strong, .history-branches span { display: block; color: #c9f2df; }
+.history-branches span { margin: 6px 0; font-size: 1.6rem; color: #f9d28b; }
+.history-branches p, .history-crosses p { color: #e2e5d7; font-size: .87rem; line-height: 1.8; }
+.history-branches small, .history-crosses small { color: #adced0; line-height: 1.7; }
+.history-crosses h4 { color: #ffe3a6; margin: 0; }
+.observation-lab { display: grid; grid-template-columns: minmax(230px, 1fr) 1.25fr; gap: 24px; margin-top: 24px; padding: 24px; background: linear-gradient(135deg, #18464b, #102f3b); border: 1px solid #507779; border-radius: 20px; }
+.lab-fish h3 { color: #ffe5a7; margin: 8px 0; }
+.lab-fish .goldfish-preview-canvas { width: 100%; max-width: 340px; height: 190px; margin: auto; }
+.lab-fish p:not(.eyebrow) { color: #c1ddda; line-height: 1.8; font-size: .84rem; }
+.lab-fish small { color: #a9c8c8; line-height: 1.7; font-size: .75rem; }
+.lab-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-content: start; }
+.lab-controls > label { display: grid; gap: 6px; color: #cce5dd; font-size: .85rem; }
+.lab-controls select { width: 100%; min-width: 0; padding: 9px; border: 1px solid #527a7d; border-radius: 8px; background: #0c303b; color: #ecf9f1; }
+.lab-controls fieldset { grid-column: 1/-1; display: flex; gap: 10px 18px; flex-wrap: wrap; border: 1px solid #527a7d; padding: 12px; border-radius: 10px; }
+.lab-controls legend { padding: 0 5px; font-size: .78rem; color: #aacfcd; }
+.lab-controls fieldset label { display: flex; align-items: center; gap: 6px; font-size: .86rem; }
+.lab-controls input { width: 17px; height: 17px; accent-color: #8be2c8; }
+.lab-controls .game-rule-note { grid-column: 1/-1; margin: 0; }
+.collection-title { color: #ffe2a2; margin: 28px 0 22px; font-size: 1.3rem; }
+.goldfish-diagram { display: block; width: 105px; height: 62px; flex-shrink: 0; }
+.tank-miniature .goldfish-diagram { width: 65px; height: 42px; margin: 0 -11px; }
+.rest-fish-grid .goldfish-diagram { width: 94px; height: 58px; }
+.newborn-preview .goldfish-preview-canvas { width: 240px; height: 134px; }
+@media (max-width: 700px) {
+  .guide-intro { padding: 18px; }.guide-emblem { display: none; }
+  .guide-entry-grid { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .observation-lab { grid-template-columns: 1fr; padding: 18px; }
+  .guide-navigation button { flex-grow: 1; padding: 10px; }
+}
+
 .tank-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 .tank-card { position: relative; overflow: hidden; padding: 0; color: #ecfbfa; text-align: left; border: 1px solid rgba(190, 240, 235, .14); border-radius: 18px 7px 18px 7px; background: rgba(7, 37, 49, .7); cursor: pointer; transition: transform .18s ease, border-color .18s ease; }
 .tank-card:hover, .tank-card.current { transform: translateY(-2px); border-color: rgba(118, 226, 214, .72); }
