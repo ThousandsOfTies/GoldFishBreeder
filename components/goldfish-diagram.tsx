@@ -12,7 +12,7 @@ export function GoldfishDiagram({ fish, examplePattern }: { fish: TraitFish; exa
   const base = a.marking === "tancho" ? "#f8f0df" : hues[fish.colorId];
   const accent = examplePattern === "rokurin" ? "#ed633e" : base;
   const body = a.body === "tall" ? "M48 49 Q67 17 91 17 Q112 32 128 49 Q112 80 87 79 Q65 78 48 49Z" : undefined;
-  return <svg viewBox="0 0 180 100" className="goldfish-diagram" aria-hidden="true">
+  return <svg viewBox="-6 -6 192 112" className="goldfish-diagram" aria-hidden="true">
     <defs><clipPath id={clip}>{body ? <path d={body} /> : <ellipse cx="91" cy="50" rx={rx} ry={ry} />}</clipPath></defs>
     <g fill={accent} stroke={accent} strokeLinejoin="round">
       {a.tail === "funa" || a.tail === "long" ? <path d={a.tail === "long" ? "M59 49 Q22 27 3 10 Q13 40 27 50 Q13 60 3 90 Q22 73 59 51Z" : "M56 48 Q27 29 17 23 L28 50 L17 77 Q27 71 56 52Z"} /> : <>
@@ -42,7 +42,7 @@ export function GoldfishDiagram({ fish, examplePattern }: { fish: TraitFish; exa
 
 export function TailDiagram({ kind }: { kind: string }) {
   const top = ["three", "four", "flat", "curled", "butterfly"].includes(kind);
-  return <svg viewBox="0 0 180 105" className="tail-diagram" aria-hidden="true">
+  return <svg viewBox="-8 -8 196 121" className="tail-diagram" aria-hidden="true">
     <g fill="#f8b673" stroke="#e68351" strokeWidth="1.5" strokeLinejoin="round">
       <path d="M142 42 L160 36 L165 56 L145 60Z" fill="#dc6944" />
       {kind === "funa" && <path d="M144 51 Q96 40 61 15 L81 51 L61 86 Q96 65 144 51Z" />}

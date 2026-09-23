@@ -471,7 +471,7 @@ export function GoldfishPreview3D({ fish, animate = true }: { fish: ThreeGoldfis
   return (
     <div className="goldfish-preview-canvas" aria-hidden="true">
       <Canvas
-        camera={{ position: [0, 0, 7], fov: 32 }}
+        camera={{ position: [0, 0, 7.7], fov: 32 }}
         dpr={animate ? [1, 1.5] : 1}
         frameloop={animate ? "always" : "demand"}
         gl={{ alpha: true, antialias: animate, powerPreference: animate ? "high-performance" : "low-power" }}
@@ -598,7 +598,7 @@ export function GoldfishSnapshotRenderer({ fish }: { fish: ThreeGoldfish[] }) {
   return (
     <div className="goldfish-snapshot-renderer" aria-hidden="true">
       <Canvas
-        camera={{ position: [0, 0, 7], fov: 32 }}
+        camera={{ position: [0, 0, 7.7], fov: 32 }}
         dpr={1}
         gl={{ alpha: true, antialias: true, powerPreference: "low-power", preserveDrawingBuffer: true }}
       >

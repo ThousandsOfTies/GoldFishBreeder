@@ -907,10 +907,6 @@ export default function HomePage() {
   return (
     <main className="game-shell">
       {renderHeader()}
-      {view === "aquarium" && renderAquarium()}
-      {view === "breed" && renderBreed()}
-      {view === "book" && renderBook()}
-      {view === "tanks" && renderTanks()}
 
       <nav className="game-nav" aria-label="ゲームのメニュー">
         <Button className={`nav-button ${view === "aquarium" ? "active" : ""}`} variant="ghost" onClick={() => setView("aquarium")}><Home />すいそうをみる</Button>
@@ -918,6 +914,11 @@ export default function HomePage() {
         <Button className={`nav-button ${view === "book" ? "active" : ""}`} variant="ghost" onClick={() => setView("book")}><BookOpen />きんぎょずかん</Button>
         <Button className={`nav-button ${view === "tanks" ? "active" : ""}`} variant="ghost" onClick={() => setView("tanks")}><FishIcon />すいそういちらん</Button>
       </nav>
+
+      {view === "aquarium" && renderAquarium()}
+      {view === "breed" && renderBreed()}
+      {view === "book" && renderBook()}
+      {view === "tanks" && renderTanks()}
 
       <Dialog open={tutorialOpen} onOpenChange={() => undefined}>
         <DialogContent className="game-dialog tutorial-dialog" showCloseButton={false} onPointerDownOutside={(event) => event.preventDefault()} onEscapeKeyDown={(event) => event.preventDefault()}>
