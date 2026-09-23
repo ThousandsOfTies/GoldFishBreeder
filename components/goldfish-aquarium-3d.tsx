@@ -1,7 +1,7 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { appearanceFor, type FishGenome, type Marking } from "@/lib/goldfish-traits";
 
@@ -481,6 +481,131 @@ export function GoldfishPreview3D({ fish, animate = true }: { fish: ThreeGoldfis
         <directionalLight position={[2, 4, 5]} intensity={2.1} color="#fff5d7" />
         <pointLight position={[-3, 1, 4]} intensity={1.6} color="#6ee8ff" distance={10} />
         <GoldfishModel fish={fish} index={0} total={1} swimmers={swimmers} preview />
+      </Canvas>
+    </div>
+  );
+}
+
+const snapshotCache = new Map<string, string>();
+const snapshotListeners = new Map<string, Set<(source: string) => void>>();
+
+function snapshotKey(fish: ThreeGoldfish) {
+  const appearance = appearanceFor(fish);
+  return [
+    appearance.body,
+    appearance.tail,
+    Number(appearance.telescope),
+    Number(appearance.dorsal),
+    Number(appearance.hood),
+    Number(appearance.pearlScales),
+    appearance.luster,
+    fish.colorId,
+    appearance.marking,
+  ].join("__");
+}
+
+function publishSnapshot(key: string, source: string) {
+  snapshotCache.set(key, source);
+  snapshotListeners.get(key)?.forEach((listener) => listener(source));
+}
+
+/**
+ * 一覧用の静止画。画像がまだ用意できていない間は軽量なSVGを表示し、
+ * 共有レンダラーで撮影が終わったら同じ3DモデルのWebPへ差し替える。
+ */
+export function GoldfishStaticPreview({ fish }: { fish: ThreeGoldfish }) {
+  const key = snapshotKey(fish);
+  const [source, setSource] = useState<string | undefined>(() => snapshotCache.get(key));
+
+  useEffect(() => {
+    const cached = snapshotCache.get(key);
+    setSource(cached);
+    if (cached) return;
+    const listeners = snapshotListeners.get(key) ?? new Set<(nextSource: string) => void>();
+    listeners.add(setSource);
+    snapshotListeners.set(key, listeners);
+    return () => {
+      listeners.delete(setSource);
+      if (listeners.size === 0) snapshotListeners.delete(key);
+    };
+  }, [key]);
+
+  return (
+    <div className="goldfish-preview-canvas" aria-hidden="true">
+      {source
+        ? <img className="goldfish-static-preview-image" src={source} alt="" />
+        : <GoldfishPreviewFallback fish={fish} />}
+    </div>
+  );
+}
+
+function SnapshotCapture({ fish, onCaptured }: { fish: ThreeGoldfish; onCaptured: (key: string, source?: string) => void }) {
+  const { gl } = useThree();
+  const swimmers = useRef(new Map<string, SwimState>());
+  const frames = useRef(0);
+  const completed = useRef(false);
+  const key = snapshotKey(fish);
+
+  useEffect(() => {
+    frames.current = 0;
+    completed.current = false;
+  }, [key]);
+
+  useFrame(() => {
+    frames.current += 1;
+    // Reactの反映後に2フレーム描いてから撮影し、初期姿勢の取りこぼしを防ぐ。
+    if (completed.current || frames.current < 3) return;
+    completed.current = true;
+    try {
+      onCaptured(key, gl.domElement.toDataURL("image/webp", 0.86));
+    } catch (error) {
+      console.warn("Goldfish snapshot could not be created.", error);
+      onCaptured(key);
+    }
+  });
+
+  return <GoldfishModel key={key} fish={fish} index={0} total={1} swimmers={swimmers} preview />;
+}
+
+/**
+ * 一覧に必要な金魚を1匹ずつ撮影する共有WebGLレンダラー。
+ * Canvasをカードごとに作らないため、ブラウザのWebGLコンテキスト上限を超えない。
+ */
+export function GoldfishSnapshotRenderer({ fish }: { fish: ThreeGoldfish[] }) {
+  const [queue, setQueue] = useState<ThreeGoldfish[]>([]);
+
+  useEffect(() => {
+    setQueue((current) => {
+      const queued = new Set(current.map(snapshotKey));
+      const additions = fish.filter((item) => {
+        const key = snapshotKey(item);
+        if (snapshotCache.has(key) || queued.has(key)) return false;
+        queued.add(key);
+        return true;
+      });
+      return additions.length > 0 ? [...current, ...additions] : current;
+    });
+  }, [fish]);
+
+  const onCaptured = useCallback((key: string, source?: string) => {
+    if (source) publishSnapshot(key, source);
+    setQueue((current) => current.filter((item) => snapshotKey(item) !== key));
+  }, []);
+
+  const active = queue[0];
+  if (!active) return null;
+
+  return (
+    <div className="goldfish-snapshot-renderer" aria-hidden="true">
+      <Canvas
+        camera={{ position: [0, 0, 7], fov: 32 }}
+        dpr={1}
+        gl={{ alpha: true, antialias: true, powerPreference: "low-power", preserveDrawingBuffer: true }}
+      >
+        <ambientLight intensity={1.35} color="#c8fff5" />
+        <directionalLight position={[2, 4, 5]} intensity={2.1} color="#fff5d7" />
+        <pointLight position={[-3, 1, 4]} intensity={1.6} color="#6ee8ff" distance={10} />
+        <SnapshotCapture fish={active} onCaptured={onCaptured} />
       </Canvas>
     </div>
   );

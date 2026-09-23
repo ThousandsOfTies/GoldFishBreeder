@@ -33,7 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Toaster } from "@/components/ui/sonner";
-import { GoldfishAquarium3D, GoldfishPreview3D } from "@/components/goldfish-aquarium-3d";
+import { GoldfishAquarium3D, GoldfishPreview3D, GoldfishSnapshotRenderer, GoldfishStaticPreview } from "@/components/goldfish-aquarium-3d";
 
 import { appearanceFor, breedGenomes, COLOR_LABELS, forecastTraits, legacyGenome, LUSTER_LABELS, MARKING_LABELS, migrateSpeciesNames, migrateTraitFish, phenotypeFromGenome, speciesKey, TAIL_LABELS, visibleTraits, type ShapeId, type ColorId, type FishGenome, type Marking } from "@/lib/goldfish-traits";
 import { GoldfishFieldGuide } from "@/components/goldfish-field-guide";
@@ -762,6 +762,7 @@ export default function HomePage() {
     const forecast = shapeParent && colorParent ? forecastTraits(shapeParent, colorParent) : null;
     return (
       <section className="workspace breed-workspace">
+        <GoldfishSnapshotRenderer fish={game.fish} />
         <div className="workspace-heading">
           <div><p className="eyebrow">おやから 1つずつ うけつぐよ</p><h2>2ひきの おやを えらぼう</h2></div>
           <p>体形・尾・目・うろこ・色・もようを、<strong>ふたりのおや</strong>から うけつぎます。</p>
@@ -829,7 +830,7 @@ export default function HomePage() {
                   return (
                     <button type="button" key={fish.id} className={`parent-card ${chosen ? "chosen" : ""}`} disabled={unavailable} onClick={() => pickParent(fish)}>
                       {chosen && <span className="chosen-mark"><Check /></span>}
-                      <GoldfishPreview3D fish={fish} animate={false} />
+                      <GoldfishStaticPreview fish={fish} />
                       <strong>{displayName(fish)}</strong>
                       <small>{placeName(fish.tank)}</small>
                     </button>
