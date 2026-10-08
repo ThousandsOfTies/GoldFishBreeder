@@ -710,9 +710,6 @@ export default function HomePage() {
         <div className="water-glow" />
         {activeTankFish.length > 0 && <GoldfishAquarium3D fish={activeTankFish} onSelect={setSelectedFishId} />}
         {activeTankFish.length > 0 && <div className="three-aquarium-hint">金魚を クリックしてみよう</div>}
-        {activeTankFish.length > 0 && <div className="three-fish-picker" aria-label="水槽の金魚をえらぶ">
-          {activeTankFish.map((fish) => <button type="button" key={fish.id} className={selectedFish?.id === fish.id ? "is-selected" : ""} onClick={() => setSelectedFishId(fish.id)}>{displayName(fish)}</button>)}
-        </div>}
         {activeTankFish.length === 0 && (
           <div className="empty-tank">
             <Waves size={42} />
