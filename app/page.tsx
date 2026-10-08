@@ -385,6 +385,7 @@ export default function HomePage() {
   const [viewingMode, setViewingMode] = useState(false);
   const [backupOpen, setBackupOpen] = useState(false);
   const [deleteFishId, setDeleteFishId] = useState<string | null>(null);
+  const [fishPanelOpen, setFishPanelOpen] = useState(true);
   const aquariumRef = useRef<HTMLDivElement>(null);
   const backupInputRef = useRef<HTMLInputElement>(null);
 
@@ -745,7 +746,7 @@ export default function HomePage() {
   );
 
   const renderAquarium = () => (
-    <section className="game-stage">
+    <section className={`game-stage ${fishPanelOpen ? "" : "panel-closed"}`}>
       <div
         ref={aquariumRef}
         className={`aquarium ${viewingMode ? "is-viewing" : ""}`}
@@ -755,7 +756,7 @@ export default function HomePage() {
         aria-label={`${game.tankNames[game.activeTank]}。${activeTankFish.length}匹の金魚が泳いでいます`}
       >
         <div className="water-glow" />
-        {activeTankFish.length > 0 && <GoldfishAquarium3D fish={activeTankFish} onSelect={setSelectedFishId} />}
+        {activeTankFish.length > 0 && <GoldfishAquarium3D fish={activeTankFish} onSelect={(fishId) => { setSelectedFishId(fishId); setFishPanelOpen(true); }} />}
         {activeTankFish.length === 0 && (
           <div className="empty-tank">
             <Waves size={42} />
@@ -770,7 +771,8 @@ export default function HomePage() {
         </Button>
       </div>
 
-      <aside className="fish-panel" aria-live="polite">
+      {fishPanelOpen && <aside className="fish-panel" aria-live="polite">
+        <Button variant="ghost" size="icon-sm" className="fish-panel-close" aria-label="金魚の説明を閉じる" onClick={() => setFishPanelOpen(false)}><X size={18} /></Button>
         {selectedFish && selectedFish.tank === game.activeTank ? (
           <>
             <p className="eyebrow">この金魚</p>
@@ -795,7 +797,7 @@ export default function HomePage() {
         ) : (
           <div className="empty-panel"><FishIcon size={34} /><p>金魚を えらぶと<br />くわしく見られます。</p></div>
         )}
-      </aside>
+      </aside>}
     </section>
   );
 

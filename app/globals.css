@@ -42,6 +42,7 @@ button { font: inherit; }
 .backup-button { justify-self: end; color: #b8dfdf; border: 1px solid rgba(190, 241, 236, .16); border-radius: 12px; background: rgba(10, 52, 63, .48); }
 .backup-button:hover { color: #082f38; background: #a9eee5; }
 .game-stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(245px, 285px); gap: 16px; height: clamp(430px, calc(100dvh - 210px), 780px); min-height: 0; }
+.game-stage.panel-closed { grid-template-columns: minmax(0, 1fr); }
 .aquarium { position: relative; isolation: isolate; overflow: hidden; background-image: linear-gradient(rgba(1, 35, 50, .05), rgba(1, 23, 35, .18)), url("/aquarium-bg-0.png"); background-size: cover; background-position: center; border: 1px solid rgba(183, 242, 237, .25); border-radius: 30px 12px 30px 12px; box-shadow: inset 0 0 0 5px rgba(214, 252, 248, .035), inset 0 -80px 100px rgba(0, 18, 30, .18), 0 22px 70px rgba(0, 0, 0, .36); }
 .water-glow { position: absolute; inset: 0; z-index: -1; background: linear-gradient(105deg, transparent 25%, rgba(150,245,242,.13) 44%, transparent 62%); animation: shimmer 9s ease-in-out infinite alternate; }
 .three-aquarium-canvas { position: absolute; z-index: 1; inset: 0; cursor: pointer; }
@@ -54,7 +55,9 @@ button { font: inherit; }
 .fish-name { position: absolute; left: 50%; top: 90%; transform: translateX(-50%); padding: 3px 9px; color: #f4ffff; background: rgba(3, 27, 38, .72); border: 1px solid rgba(218, 255, 251, .22); border-radius: 99px; font-size: .72rem; font-weight: 700; white-space: nowrap; opacity: 0; transition: opacity .2s ease; }
 .swimming-fish:hover .fish-name, .swimming-fish:focus-visible .fish-name, .swimming-fish.is-selected .fish-name { opacity: 1; }
 .fullscreen-button { position: absolute; z-index: 5; right: 16px; top: 16px; background: rgba(232, 253, 250, .84); backdrop-filter: blur(10px); }
-.fish-panel { min-width: 0; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: #63d7c9 rgba(3, 28, 39, .56); padding: clamp(16px, 1.8vw, 24px); border: 1px solid rgba(194, 245, 239, .18); border-radius: 12px 26px 12px 26px; background: linear-gradient(160deg, rgba(18, 61, 75, .9), rgba(7, 35, 47, .94)); box-shadow: 0 20px 60px rgba(0,0,0,.24); }
+.fish-panel { position: relative; min-width: 0; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: #63d7c9 rgba(3, 28, 39, .56); padding: clamp(16px, 1.8vw, 24px); border: 1px solid rgba(194, 245, 239, .18); border-radius: 12px 26px 12px 26px; background: linear-gradient(160deg, rgba(18, 61, 75, .9), rgba(7, 35, 47, .94)); box-shadow: 0 20px 60px rgba(0,0,0,.24); }
+.fish-panel-close { position: absolute; z-index: 2; top: 12px; right: 12px; color: #9ed8d4; border: 1px solid rgba(190, 241, 236, .14); border-radius: 10px; background: rgba(3, 29, 40, .36); }
+.fish-panel-close:hover { color: #072c34; background: #8de5da; }
 .fish-panel::-webkit-scrollbar { width: 10px; }
 .fish-panel::-webkit-scrollbar-track { margin-block: 16px; background: rgba(3, 28, 39, .56); border-radius: 99px; }
 .fish-panel::-webkit-scrollbar-thumb { border: 2px solid rgba(3, 28, 39, .78); border-radius: 99px; background: linear-gradient(180deg, #87e7db, #42b8b0); }
