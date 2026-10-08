@@ -828,7 +828,6 @@ export default function HomePage() {
                 <span className="slot-label">① おや金魚</span>
                 {shapeParent ? <><GoldfishPreview3D fish={shapeParent} /><strong>{displayName(shapeParent)}</strong><small>{visibleTraits(shapeParent).slice(0, 3).join("・")}</small></> : <><span className="slot-plus"><Plus /></span><strong>えらぶ</strong></>}
               </button>
-              <div className="inherit-arrow" aria-label="かけあわせる"><span aria-hidden="true">×</span></div>
               <button type="button" className={`parent-slot ${pickerSlot === "color" ? "active" : ""}`} onClick={() => setPickerSlot("color")}>
                 <span className="slot-label">② おや金魚</span>
                 {colorParent ? <><GoldfishPreview3D fish={colorParent} /><strong>{displayName(colorParent)}</strong><small>{visibleTraits(colorParent).slice(0, 3).join("・")}</small></> : <><span className="slot-plus"><Plus /></span><strong>えらぶ</strong></>}
@@ -859,7 +858,7 @@ export default function HomePage() {
             </section>}
 
             {pickerSlot && <div className="parent-picker">
-              <div className="picker-heading"><div><span>{pickerSlot === "shape" ? "①" : "②"}</span><h3>{pickerSlot === "shape" ? "①のおや金魚を えらぶ" : "②のおや金魚を えらぶ"}</h3></div><small>この中から 1ぴきえらんでね</small></div>
+              <div className="picker-heading"><div><span>{pickerSlot === "shape" ? "①" : "②"}</span><h3>おや金魚を えらぶ</h3></div></div>
               <div className="parent-grid">
                 {game.fish.map((fish) => {
                   const chosen = pickerSlot === "shape" ? shapeParentId === fish.id : colorParentId === fish.id;
