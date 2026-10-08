@@ -711,10 +711,7 @@ export default function HomePage() {
         {activeTankFish.length > 0 && <GoldfishAquarium3D fish={activeTankFish} onSelect={setSelectedFishId} />}
         {activeTankFish.length > 0 && <div className="three-aquarium-hint">金魚を クリックしてみよう</div>}
         {activeTankFish.length > 0 && <div className="three-fish-picker" aria-label="水槽の金魚をえらぶ">
-          {activeTankFish.map((fish) => <div className="fish-list-item" key={fish.id}>
-            <button type="button" className={selectedFish?.id === fish.id ? "is-selected" : ""} onClick={() => setSelectedFishId(fish.id)}>{displayName(fish)}</button>
-            <button type="button" className="fish-delete-button" aria-label={`${displayName(fish)}を消す`} title={`${displayName(fish)}を消す`} onClick={() => setDeleteFishId(fish.id)}><X /></button>
-          </div>)}
+          {activeTankFish.map((fish) => <button type="button" key={fish.id} className={selectedFish?.id === fish.id ? "is-selected" : ""} onClick={() => setSelectedFishId(fish.id)}>{displayName(fish)}</button>)}
         </div>}
         {activeTankFish.length === 0 && (
           <div className="empty-tank">
@@ -749,6 +746,7 @@ export default function HomePage() {
             <div className="panel-actions">
               <Button className="parent-button" onClick={() => chooseAsParent(selectedFish)}><FlaskConical size={18} />この子を おやにする</Button>
               <Button variant="outline" className="move-button" onClick={() => setMoveOpen(true)}><MoveRight size={18} />おひっこし</Button>
+              <Button variant="outline" className="farewell-button" onClick={() => setDeleteFishId(selectedFish.id)}><X size={18} />おわかれする</Button>
             </div>
           </>
         ) : (
