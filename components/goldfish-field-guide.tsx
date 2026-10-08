@@ -57,7 +57,6 @@ export function GoldfishFieldGuide() {
   const [section, setSection] = useState<GuideSection>("body");
   const selected = GUIDE_SECTIONS.find((item) => item.id === section)!;
   return <div className="field-guide">
-    <div className="guide-intro"><div><p className="eyebrow">かたちを知ると、つくるのが もっと楽しい</p><h3>金魚の ひみつを しらべよう</h3><p>「体形・尾・うろこ・色・もよう」を、ひとつずつ観察しよう。</p></div><span className="guide-emblem" aria-hidden="true">観察<br />ノート</span></div>
     <nav className="guide-navigation" aria-label="図鑑の分類">{GUIDE_SECTIONS.map((item) => <button type="button" key={item.id} aria-pressed={section === item.id} onClick={() => setSection(item.id)}>{item.label}</button>)}</nav>
     <section className="guide-section" aria-label={selected.label}>
       <h3>{selected.label}</h3><p className="guide-section-intro">{selected.intro}</p>

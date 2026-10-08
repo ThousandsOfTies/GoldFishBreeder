@@ -890,10 +890,6 @@ export default function HomePage() {
     }).filter((item): item is { key: string; name: string; fish: FishRecord } => Boolean(item));
     return (
       <section className="workspace book-workspace">
-        <div className="workspace-heading book-heading">
-          <div><p className="eyebrow">見つけた 形質と くみあわせ</p><h2>きんぎょずかん</h2></div>
-          <div className="discovery-count"><strong>{discoveredFish.length}</strong><span>しゅるい</span></div>
-        </div>
         <GoldfishFieldGuide />
         <h3 className="collection-title">わたしの コレクション</h3>
         <div className="book-rule"><span className="shape-chip">おやAの遺伝子</span><Plus /><span className="color-chip">おやBの遺伝子</span><ArrowRight /><strong>新しい形質の組合せ</strong></div>
