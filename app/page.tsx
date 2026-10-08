@@ -8,7 +8,6 @@ import {
   Fish as FishIcon,
   FlaskConical,
   Home,
-  LockKeyhole,
   Maximize2,
   Minimize2,
   MoveRight,
@@ -886,11 +885,6 @@ export default function HomePage() {
     return (
       <section className="workspace book-workspace">
         <GoldfishFieldGuide />
-        <div className="locked-parents">
-          {BASE_PARENTS.filter((parent) => parent.unlockAt > game.breedCount).slice(0, 1).map((parent) => (
-            <div key={parent.name}><LockKeyhole /><span>あと {parent.unlockAt - game.breedCount}かいで、新しい親金魚が増えるよ</span></div>
-          ))}
-        </div>
       </section>
     );
   };

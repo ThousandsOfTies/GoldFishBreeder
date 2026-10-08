@@ -182,9 +182,6 @@ button { font: inherit; }
 .unknown-mark { display: block; color: #557c83; font-size: 2rem; }
 .unknown-cell small { font-size: .65rem; }
 .found-cell { background: radial-gradient(circle at 50% 42%, rgba(116, 220, 208, .1), transparent 65%); }
-.locked-parents { margin-top: 14px; }
-.locked-parents > div { display: flex; align-items: center; justify-content: center; gap: 9px; color: #9bbdc2; font-size: .85rem; }
-.locked-parents svg { width: 17px; color: #ffda82; }
 
 /* Tank list */
 .game-rule-note { color: #c5dfe0; font-size: .76rem; line-height: 1.7; }
