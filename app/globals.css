@@ -46,7 +46,6 @@ button { font: inherit; }
 .water-glow { position: absolute; inset: 0; z-index: -1; background: linear-gradient(105deg, transparent 25%, rgba(150,245,242,.13) 44%, transparent 62%); animation: shimmer 9s ease-in-out infinite alternate; }
 .three-aquarium-canvas { position: absolute; z-index: 1; inset: 0; cursor: pointer; }
 .three-aquarium-canvas canvas { display: block; width: 100% !important; height: 100% !important; outline: none; }
-.three-aquarium-hint { position: absolute; z-index: 4; top: 16px; left: 16px; padding: 7px 11px; color: #e9ffff; background: rgba(3, 35, 48, .62); border: 1px solid rgba(210, 255, 250, .2); border-radius: 99px; font-size: .76rem; font-weight: 800; pointer-events: none; backdrop-filter: blur(7px); }
 .aquarium-vignette { position: absolute; z-index: 3; inset: 0; pointer-events: none; box-shadow: inset 0 0 110px rgba(0, 18, 30, .42); }
 .swimming-fish { position: absolute; z-index: 2; aspect-ratio: 1.8; padding: 0; border: 0; color: white; background: transparent; cursor: pointer; filter: drop-shadow(0 10px 9px rgba(0, 25, 35, .28)); animation-name: swim; animation-timing-function: ease-in-out; animation-iteration-count: infinite; transition: filter .2s ease; }
 .swimming-fish canvas { display: block; width: 100%; height: 100%; }
