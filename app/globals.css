@@ -130,7 +130,7 @@ button { font: inherit; }
 .slot-label { position: absolute; top: 13px; left: 15px; color: #7eddd2; font-size: .76rem; font-weight: 800; letter-spacing: .06em; }
 .slot-plus { width: 74px; height: 74px; display: grid; place-items: center; margin-bottom: 12px; color: #8de7db; border: 2px dashed rgba(142, 232, 221, .5); border-radius: 50%; }
 .inherit-arrow, .equals-mark { display: grid; place-content: center; justify-items: center; color: #81ddd2; }
-.inherit-arrow span { margin-top: 5px; color: #8ab8be; font-size: .7rem; }
+.inherit-arrow span { color: #81ddd2; font-size: 2rem; font-weight: 300; line-height: 1; }
 .equals-mark { font-size: 2rem; font-weight: 300; }
 .child-preview { border-color: rgba(255, 216, 130, .28); background: linear-gradient(155deg, rgba(76, 64, 49, .62), rgba(21, 48, 52, .9)); }
 .child-preview .slot-label { color: #ffdc85; }
@@ -340,8 +340,8 @@ button { font: inherit; }
   .workspace { padding: 18px; }
   .workspace-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
   .breeding-board { grid-template-columns: 1fr; }
-  .inherit-arrow { transform: rotate(90deg); min-height: 45px; }
-  .inherit-arrow span, .equals-mark { display: none; }
+  .inherit-arrow { min-height: 45px; }
+  .equals-mark { display: none; }
   .child-preview { grid-column: auto; }
   .tank-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tutorial-steps { grid-template-columns: 1fr; }

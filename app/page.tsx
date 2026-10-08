@@ -830,7 +830,7 @@ export default function HomePage() {
                 <span className="slot-label">① おや金魚</span>
                 {shapeParent ? <><GoldfishPreview3D fish={shapeParent} /><strong>{displayName(shapeParent)}</strong><small>{visibleTraits(shapeParent).slice(0, 3).join("・")}</small></> : <><span className="slot-plus"><Plus /></span><strong>えらぶ</strong></>}
               </button>
-              <div className="inherit-arrow"><ArrowRight /><span>かけあわせ</span></div>
+              <div className="inherit-arrow" aria-label="かけあわせる"><span aria-hidden="true">×</span></div>
               <button type="button" className={`parent-slot ${pickerSlot === "color" ? "active" : ""}`} onClick={() => setPickerSlot("color")}>
                 <span className="slot-label">② おや金魚</span>
                 {colorParent ? <><GoldfishPreview3D fish={colorParent} /><strong>{displayName(colorParent)}</strong><small>{visibleTraits(colorParent).slice(0, 3).join("・")}</small></> : <><span className="slot-plus"><Plus /></span><strong>えらぶ</strong></>}
