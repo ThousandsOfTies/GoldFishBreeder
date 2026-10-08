@@ -76,7 +76,6 @@ export function GoldfishFieldGuide() {
         {section === "color" && <p className="guide-callout">赤・黄系の色素、黒い色素、光をはね返す層が色の見え方に関わります。ラベンダーなど、ゲーム用の色は実物の色名とは分けています。</p>}
         {section === "pattern" && <p className="guide-callout">ゲームでは単色・更紗・キャリコ・丹頂・赤黒を組み合わせられます。桜の雰囲気は、淡い赤の更紗と透明鱗などで試せます。色と鱗の関係は遊び用の簡略表現です。</p>}
       </>}
-      <p className="guide-footnote">絵は見分け方の模式図です。「図鑑で紹介」の特徴は、いまは掛け合わせの対象外です。</p>
     </section>
     <ObservationLab />
   </div>;
