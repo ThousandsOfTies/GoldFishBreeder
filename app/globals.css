@@ -169,19 +169,6 @@ button { font: inherit; }
 .result-actions button { min-width: 150px; min-height: 48px; }
 
 /* Book */
-.book-rule { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; color: #9fc6cb; }
-.book-rule > span { padding: 7px 11px; border-radius: 10px; font-size: .8rem; font-weight: 800; }
-.shape-chip { color: #07333c; background: #82e2d6; }
-.color-chip { color: #382507; background: #ffda83; }
-.book-rule strong { color: #f3ffff; }
-.genetics-guide { display: flex; align-items: center; justify-content: center; gap: 9px; max-width: 760px; margin: -5px auto 18px; padding: 10px 14px; color: #cbe7e5; border: 1px solid rgba(126, 224, 212, .15); border-radius: 14px; background: rgba(5, 48, 58, .42); font-size: .82rem; text-align: center; line-height: 1.5; }
-.genetics-guide svg { flex: 0 0 auto; color: #ffe08d; }
-.trait-book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px; }
-.trait-book-card { display: flex; align-items: center; gap: 8px; min-height: 104px; padding: 10px; border: 1px solid rgba(190, 241, 236, .16); border-radius: 17px 7px 17px 7px; background: radial-gradient(circle at 15% 20%, rgba(116, 220, 208, .1), transparent 60%), rgba(2, 28, 39, .4); }
-.trait-book-card canvas { width: 105px; height: 58px; flex: 0 0 auto; filter: drop-shadow(0 7px 8px rgba(0,0,0,.3)); }
-.trait-book-card div { min-width: 0; display: grid; gap: 4px; }
-.trait-book-card strong { color: #fff0b7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.trait-book-card small { color: #a7cdd1; font-size: .72rem; line-height: 1.45; }
 .book-table-wrap { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; border: 1px solid rgba(191, 241, 236, .16); border-radius: 18px; background: rgba(2, 24, 34, .38); scrollbar-color: #4b8c8c rgba(2,24,34,.45); }
 .breeding-table { min-width: 700px; border-collapse: separate; border-spacing: 0; }
 .breeding-table th, .breeding-table td { min-width: 132px; border-right: 1px solid rgba(186, 239, 233, .1); border-bottom: 1px solid rgba(186, 239, 233, .1); text-align: center; }
@@ -248,7 +235,6 @@ button { font: inherit; }
 .lab-controls fieldset label { display: flex; align-items: center; gap: 6px; font-size: .86rem; }
 .lab-controls input { width: 17px; height: 17px; accent-color: #8be2c8; }
 .lab-controls .game-rule-note { grid-column: 1/-1; margin: 0; }
-.collection-title { color: #ffe2a2; margin: 28px 0 22px; font-size: 1.3rem; }
 .goldfish-diagram { display: block; width: 105px; height: 62px; flex-shrink: 0; }
 .tank-miniature .goldfish-diagram { width: 65px; height: 42px; margin: 0 -11px; }
 .newborn-preview .goldfish-preview-canvas { width: 240px; height: 134px; }
@@ -376,8 +362,6 @@ button { font: inherit; }
   .tank-card { display: grid; grid-template-columns: 42% 1fr; }
   .tank-miniature { height: 98px; }
   .tank-card-copy { align-content: center; }
-  .book-rule { align-items: stretch; }
-  .book-rule > span, .book-rule > strong { width: 100%; text-align: center; }
 }
 @media (max-height: 680px) and (min-width: 981px) {
   .game-header { min-height: 62px; margin-bottom: 8px; }

@@ -2,7 +2,6 @@
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowRight,
   BookOpen,
   Check,
   Download,
@@ -884,22 +883,9 @@ export default function HomePage() {
   };
 
   const renderBook = () => {
-    const discoveredFish = Object.entries(game.speciesNames).map(([key, name]) => {
-      const example = game.fish.find((fish) => speciesKey(fish) === key);
-      return example ? { key, name, fish: example } : null;
-    }).filter((item): item is { key: string; name: string; fish: FishRecord } => Boolean(item));
     return (
       <section className="workspace book-workspace">
         <GoldfishFieldGuide />
-        <h3 className="collection-title">わたしの コレクション</h3>
-        <div className="book-rule"><span className="shape-chip">おやAの遺伝子</span><Plus /><span className="color-chip">おやBの遺伝子</span><ArrowRight /><strong>新しい形質の組合せ</strong></div>
-        <div className="genetics-guide"><Sparkles size={18} /><span>ゲームでは、形・色・もよう・鱗のつやを組み合わせるよ。ちがう見た目には、ちがう名前をつけられるよ。</span></div>
-        <div className="trait-book-grid">
-          {discoveredFish.map(({ key, name, fish }) => <article key={key} className="trait-book-card">
-            <GoldfishDiagram fish={fish} />
-            <div><strong>{name}</strong><small>{visibleTraits(fish).join(" ・ ")}</small></div>
-          </article>)}
-        </div>
         <div className="locked-parents">
           {BASE_PARENTS.filter((parent) => parent.unlockAt > game.breedCount).slice(0, 1).map((parent) => (
             <div key={parent.name}><LockKeyhole /><span>あと {parent.unlockAt - game.breedCount}かいで、新しい親金魚が増えるよ</span></div>
