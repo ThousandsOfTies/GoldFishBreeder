@@ -374,7 +374,7 @@ export default function HomePage() {
   const [selectedFishId, setSelectedFishId] = useState("wakin-1");
   const [shapeParentId, setShapeParentId] = useState<string | null>(null);
   const [colorParentId, setColorParentId] = useState<string | null>(null);
-  const [pickerSlot, setPickerSlot] = useState<ParentSlot>("shape");
+  const [pickerSlot, setPickerSlot] = useState<ParentSlot | null>(null);
   const [breedPhase, setBreedPhase] = useState<BreedPhase>("idle");
   const [pendingBirth, setPendingBirth] = useState<FishRecord | null>(null);
   const [birthSummary, setBirthSummary] = useState<BirthSummary | null>(null);
@@ -455,7 +455,7 @@ export default function HomePage() {
         }
         setShapeParentId(shapeId);
         setColorParentId(colorId);
-        setPickerSlot("color");
+        setPickerSlot(null);
         setBreedPhase("idle");
         setBirthSummary(null);
         setView("breed");
@@ -511,21 +511,22 @@ export default function HomePage() {
       setPickerSlot("color");
     } else if (shapeParentId !== fish.id) {
       setColorParentId(fish.id);
-      setPickerSlot("color");
+      setPickerSlot(null);
     }
     setView("breed");
     setBreedPhase("idle");
   };
 
   const pickParent = (fish: FishRecord) => {
+    if (!pickerSlot) return;
     if (pickerSlot === "shape") {
       if (fish.id === colorParentId) return;
       setShapeParentId(fish.id);
-      setPickerSlot("color");
     } else {
       if (fish.id === shapeParentId) return;
       setColorParentId(fish.id);
     }
+    setPickerSlot(null);
     setBreedPhase("idle");
     setBirthSummary(null);
   };
@@ -806,9 +807,8 @@ export default function HomePage() {
     return (
       <section className="workspace breed-workspace">
         <GoldfishSnapshotRenderer fish={game.fish} />
-        <div className="workspace-heading">
-          <div><p className="eyebrow">おやから 1つずつ うけつぐよ</p><h2>2ひきの おやを えらぼう</h2></div>
-          <p>体形・尾・目・うろこ・色・もようを、<strong>ふたりのおや</strong>から うけつぎます。</p>
+        <div className="workspace-heading breed-heading">
+          <h2>2ひきの おやを えらぼう</h2>
         </div>
 
         {breedPhase === "result" && birthSummary ? (
@@ -838,7 +838,7 @@ export default function HomePage() {
               <div className="equals-mark">＝</div>
               <div className="child-preview">
                 <span className="slot-label">うまれる金魚</span>
-                {shapeParent && colorParent ? <><span className="mystery-fish">？</span><strong>どんな子かな？</strong><small>形質を 1つずつ うけつぐよ</small></> : <><span className="mystery-fish">？</span><strong>？？？</strong></>}
+                {shapeParent && colorParent ? <><span className="mystery-fish">？</span><strong>どんな子かな？</strong></> : <><span className="mystery-fish">？</span><strong>？？？</strong></>}
               </div>
               {breedPhase === "mixing" && <div className="mixing-layer"><span className="bubble b1" /><span className="bubble b2" /><span className="bubble b3" /><Sparkles /><strong>あたらしい金魚が<br />うまれそう…</strong></div>}
             </div>
@@ -848,10 +848,6 @@ export default function HomePage() {
                 <Sparkles />{breedPhase === "mixing" ? "まっています…" : !hasBirthSpace ? "すいそうの あきが たりない" : "かけあわせる"}
               </Button>
             </div>
-
-            {shapeParent && colorParent && <div className="inheritance-explainer">
-              <Sparkles size={18} /><div><strong>今回のルール</strong><span>それぞれのおやから、特徴のもとを1つずつ受け取ります。色・もよう・鱗のつやは別々に決まります。目・尾などは2つそろうと出る特徴もあります。</span></div>
-            </div>}
 
             {forecast && <section className="trait-forecast" aria-label="この交配で生まれる形質の予想">
               <div><p className="eyebrow">かけあわせ前の よそう</p><h3>どんな形質が 出るかな？</h3></div>
@@ -864,8 +860,8 @@ export default function HomePage() {
               <p className="game-rule-note">この数字はゲームのルールです。本物の金魚の交配確率ではありません。親とちがう特徴の組合せも生まれます。</p>
             </section>}
 
-            <div className="parent-picker">
-              <div className="picker-heading"><div><span>{pickerSlot === "shape" ? "①" : "②"}</span><h3>{pickerSlot === "shape" ? "1ひめの おやを えらぶ" : "2ひめの おやを えらぶ"}</h3></div><small>金魚を クリックしてね</small></div>
+            {pickerSlot && <div className="parent-picker">
+              <div className="picker-heading"><div><span>{pickerSlot === "shape" ? "①" : "②"}</span><h3>{pickerSlot === "shape" ? "①のおや金魚を えらぶ" : "②のおや金魚を えらぶ"}</h3></div><small>この中から 1ぴきえらんでね</small></div>
               <div className="parent-grid">
                 {game.fish.map((fish) => {
                   const chosen = pickerSlot === "shape" ? shapeParentId === fish.id : colorParentId === fish.id;
@@ -880,7 +876,7 @@ export default function HomePage() {
                   );
                 })}
               </div>
-            </div>
+            </div>}
           </>
         )}
       </section>
