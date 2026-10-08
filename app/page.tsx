@@ -915,7 +915,7 @@ export default function HomePage() {
 
   const renderTanks = () => (
     <section className="workspace tanks-workspace">
-      <div className="workspace-heading"><div><p className="eyebrow">10この すいそう</p><h2>どの すいそうを みる？</h2></div><p>1つの すいそうには 10ぴきまで はいれます。</p></div>
+      <div className="workspace-heading"><div><h2>どの すいそうを みる？</h2></div><p>1つの すいそうには 10ぴきまで はいれます。</p></div>
       <div className="tank-grid">
         {game.tankNames.map((name, tank) => {
           const residents = game.fish.filter((fish) => fish.tank === tank);
