@@ -54,7 +54,11 @@ button { font: inherit; }
 .fish-name { position: absolute; left: 50%; top: 90%; transform: translateX(-50%); padding: 3px 9px; color: #f4ffff; background: rgba(3, 27, 38, .72); border: 1px solid rgba(218, 255, 251, .22); border-radius: 99px; font-size: .72rem; font-weight: 700; white-space: nowrap; opacity: 0; transition: opacity .2s ease; }
 .swimming-fish:hover .fish-name, .swimming-fish:focus-visible .fish-name, .swimming-fish.is-selected .fish-name { opacity: 1; }
 .fullscreen-button { position: absolute; z-index: 5; right: 16px; top: 16px; background: rgba(232, 253, 250, .84); backdrop-filter: blur(10px); }
-.fish-panel { min-width: 0; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; padding: clamp(16px, 1.8vw, 24px); border: 1px solid rgba(194, 245, 239, .18); border-radius: 12px 26px 12px 26px; background: linear-gradient(160deg, rgba(18, 61, 75, .9), rgba(7, 35, 47, .94)); box-shadow: 0 20px 60px rgba(0,0,0,.24); }
+.fish-panel { min-width: 0; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: #63d7c9 rgba(3, 28, 39, .56); padding: clamp(16px, 1.8vw, 24px); border: 1px solid rgba(194, 245, 239, .18); border-radius: 12px 26px 12px 26px; background: linear-gradient(160deg, rgba(18, 61, 75, .9), rgba(7, 35, 47, .94)); box-shadow: 0 20px 60px rgba(0,0,0,.24); }
+.fish-panel::-webkit-scrollbar { width: 10px; }
+.fish-panel::-webkit-scrollbar-track { margin-block: 16px; background: rgba(3, 28, 39, .56); border-radius: 99px; }
+.fish-panel::-webkit-scrollbar-thumb { border: 2px solid rgba(3, 28, 39, .78); border-radius: 99px; background: linear-gradient(180deg, #87e7db, #42b8b0); }
+.fish-panel::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #a8f2e9, #5fd2c7); }
 .eyebrow { margin: 0; color: #73ddd1; font-size: .75rem; font-weight: 800; letter-spacing: .12em; }
 .selected-fish { height: clamp(96px, 18dvh, 145px); display: grid; place-items: center; margin: 8px -8px 2px; overflow: hidden; border-bottom: 1px solid rgba(200,245,240,.12); }
 .goldfish-preview-canvas { width: min(190px, 100%); height: 132px; max-width: 100%; filter: drop-shadow(0 12px 13px rgba(0,0,0,.28)); pointer-events: none; }
