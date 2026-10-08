@@ -199,10 +199,10 @@ button { font: inherit; }
 .guide-picture svg { width: 175px; height: 108px; }
 .guide-entry-copy { padding: 14px 16px; }
 .guide-entry h4 { margin: 8px 0 2px; font-size: 1.06rem; color: #ffebb3; }
+.guide-entry-copy.in-game h4 { margin-top: 0; }
 .guide-entry small { color: #a7cfcc; font-size: .75rem; }
 .guide-entry p { color: #d2e4e2; font-size: .84rem; line-height: 1.8; margin: 9px 0 0; }
 .guide-tag { font-size: .66rem; border: 1px solid #5c787e; color: #bed4d7; border-radius: 12px; padding: 3px 8px; }
-.guide-tag.available { color: #a9efd4; border-color: #488e7d; }
 .guide-callout { margin: 18px 0; padding: 14px 18px; border-left: 3px solid #f4cf84; color: #f0e5c4; background: #273f41; line-height: 1.8; font-size: .86rem; }
 .guide-footnote { color: #9ebdc2; line-height: 1.7; font-size: .76rem; }
 .guide-color-sample { width: 94px; height: 76px; border-radius: 50%; position: relative; box-shadow: inset -10px -10px 20px #0002; }

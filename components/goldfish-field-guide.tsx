@@ -69,7 +69,7 @@ export function GoldfishFieldGuide() {
       </> : <>
         <div className="guide-entry-grid">{GUIDE_ENTRIES[section].map((entry) => <article className="guide-entry" key={entry.name}>
           <div className="guide-picture"><EntryPicture entry={entry} section={section} /></div>
-          <div className="guide-entry-copy"><span className={entry.inGame ? "guide-tag available" : "guide-tag"}>{entry.inGame ? "ゲームで観察" : "図鑑で紹介"}</span><h4>{entry.name}</h4>{entry.reading && <small>{entry.reading}</small>}<p>{entry.detail}</p></div>
+          <div className={`guide-entry-copy ${entry.inGame ? "in-game" : ""}`}>{!entry.inGame && <span className="guide-tag">図鑑で紹介</span>}<h4>{entry.name}</h4>{entry.reading && <small>{entry.reading}</small>}<p>{entry.detail}</p></div>
         </article>)}</div>
         {section === "tail" && <p className="guide-callout">和金の尾は、横から二つに分かれて見えても、図鑑では「フナ尾」と呼ぶよ。三つ尾・四つ尾とは、分け方がちがうんだ。</p>}
         {section === "scales" && <p className="guide-callout">パール鱗は「盛り上がる形」、透明鱗は「光り方」の話。ゲームでも鱗の形とつやを分けて組み合わせます。</p>}
