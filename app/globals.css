@@ -261,7 +261,6 @@ button { font: inherit; }
 .collection-title { color: #ffe2a2; margin: 28px 0 22px; font-size: 1.3rem; }
 .goldfish-diagram { display: block; width: 105px; height: 62px; flex-shrink: 0; }
 .tank-miniature .goldfish-diagram { width: 65px; height: 42px; margin: 0 -11px; }
-.rest-fish-grid .goldfish-diagram { width: 94px; height: 58px; }
 .newborn-preview .goldfish-preview-canvas { width: 240px; height: 134px; }
 @media (max-width: 700px) {
   .guide-intro { padding: 18px; }.guide-emblem { display: none; }
@@ -281,18 +280,6 @@ button { font: inherit; }
 .tank-card-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .9rem; }
 .tank-card-copy small { color: #8eafb4; font-size: .7rem; }
 .current-badge { position: absolute; z-index: 2; right: 7px; top: 7px; padding: 3px 7px; color: #072c35; background: #8be5da; border-radius: 99px; font-size: .62rem; font-weight: 900; }
-.rest-pond { margin-top: 18px; padding: 18px; border: 1px solid rgba(196, 241, 235, .13); border-radius: 18px; background: linear-gradient(120deg, rgba(19, 62, 73, .68), rgba(5, 34, 46, .65)); }
-.rest-copy { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.rest-copy > div { min-width: 0; }
-.rest-icon { width: 48px; height: 48px; display: grid; place-items: center; color: #07313a; background: #80ddd2; border-radius: 15px; }
-.rest-copy h3 { margin: 2px 0; font-size: 1.15rem; }
-.rest-copy p { margin: 0; color: #9ebfc4; font-size: .82rem; }
-.rest-copy > strong { margin-left: auto; color: #ffe09a; }
-.rest-fish-grid { display: flex; gap: 8px; margin-top: 14px; padding-top: 14px; overflow-x: auto; border-top: 1px solid rgba(190, 240, 235, .12); }
-.rest-fish-grid button { min-width: 115px; display: grid; justify-items: center; padding: 6px; color: #eafaf9; border: 1px solid rgba(190,240,235,.14); border-radius: 12px; background: rgba(2,28,39,.45); cursor: pointer; }
-.rest-fish-grid canvas { width: 94px; height: 53px; }
-.rest-fish-grid span { font-size: .76rem; }
-.rest-empty { margin: 13px 0 0 62px; color: #789da4; font-size: .82rem; }
 
 /* Dialogs */
 .game-dialog { width: min(calc(100vw - 24px), 720px); max-height: calc(100dvh - 24px); overflow-y: auto; color: #edfafa; border-color: rgba(191, 241, 236, .22); background: linear-gradient(145deg, #123d4b, #061f2b); border-radius: 24px 10px 24px 10px; box-shadow: 0 30px 100px rgba(0,0,0,.55); }
@@ -338,8 +325,6 @@ button { font: inherit; }
 .destination-grid button > span { width: 34px; height: 34px; display: grid; place-items: center; color: #07313a; background: #7ddcd1; border-radius: 10px; font-weight: 900; }
 .destination-grid button > strong { font-size: .86rem; }
 .destination-grid button > small { color: #91b6bb; font-size: .68rem; }
-.destination-grid .rest-destination { grid-column: 1 / -1; }
-.destination-grid .rest-destination span svg { width: 19px; }
 .rename-dialog form { display: grid; gap: 18px; }
 
 @keyframes pulse { 50% { transform: scale(1.15) rotate(8deg); opacity: .7; } }
@@ -361,7 +346,6 @@ button { font: inherit; }
   .tank-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tutorial-steps { grid-template-columns: 1fr; }
   .destination-grid { grid-template-columns: 1fr; }
-  .destination-grid .rest-destination { grid-column: auto; }
 }
 @media (max-width: 560px) {
   .workspace { padding: 14px 12px; border-radius: 20px 8px; }
@@ -383,8 +367,6 @@ button { font: inherit; }
   .observation-lab { padding: 14px; }
   .tank-grid { gap: 8px; }
   .tank-miniature { height: 94px; }
-  .rest-copy { align-items: flex-start; flex-wrap: wrap; }
-  .rest-copy > strong { margin-left: 62px; }
   .backup-actions { grid-template-columns: 1fr; }
   .result-actions { width: 100%; flex-direction: column; }
   .result-actions button { width: 100%; }

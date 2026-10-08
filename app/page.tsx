@@ -39,7 +39,7 @@ import { appearanceFor, breedGenomes, COLOR_LABELS, forecastTraits, legacyGenome
 import { GoldfishFieldGuide } from "@/components/goldfish-field-guide";
 import { GoldfishDiagram } from "@/components/goldfish-diagram";
 type PatternId = "plain" | "patch" | "spots" | "cap" | "pearls" | "stripe" | "calico" | "cloud";
-type TankPlace = number | "rest";
+type TankPlace = number;
 type ViewId = "aquarium" | "breed" | "book" | "tanks";
 type ParentSlot = "shape" | "color";
 type BreedPhase = "idle" | "mixing" | "result";
@@ -142,15 +142,41 @@ const INITIAL_TANK_NAMES = [
   "もりの すいそう", "つきの すいそう", "さくらの すいそう", "にじの すいそう", "おまつり すいそう",
 ];
 
+const TANK_COUNT = 10;
+const TANK_CAPACITY = 10;
+
+function migrateFishIntoTanks(fish: FishRecord[]): FishRecord[] {
+  const tankCounts = Array.from({ length: TANK_COUNT }, () => 0);
+
+  fish.forEach((item) => {
+    const tank = item.tank as number | "rest";
+    if (typeof tank === "number" && Number.isInteger(tank) && tank >= 0 && tank < TANK_COUNT) {
+      tankCounts[tank] += 1;
+    }
+  });
+
+  return fish.map((item) => {
+    const tank = item.tank as number | "rest";
+    if (typeof tank === "number" && Number.isInteger(tank) && tank >= 0 && tank < TANK_COUNT) return item;
+
+    let destination = tankCounts.findIndex((count) => count < TANK_CAPACITY);
+    if (destination < 0) {
+      destination = tankCounts.indexOf(Math.min(...tankCounts));
+    }
+    tankCounts[destination] += 1;
+    return { ...item, tank: destination };
+  });
+}
+
 function migrateGame(saved: GameState): GameState | null {
   if (!Array.isArray(saved.fish) || saved.tankNames?.length !== 10 || typeof saved.breedCount !== "number") return null;
   if (!saved.fish.every((fish) => fish && fish.shapeId in SHAPES && fish.colorId in COLORS)) return null;
-  const fish = saved.fish.map(migrateTraitFish);
-  return { ...saved, version: 3, fish, speciesNames: migrateSpeciesNames(fish, saved.speciesNames ?? {}) };
+  const fish = migrateFishIntoTanks(saved.fish.map(migrateTraitFish));
+  return { ...saved, version: 4, fish, speciesNames: migrateSpeciesNames(fish, saved.speciesNames ?? {}) };
 }
 
 const initialGame = (): GameState => ({
-  version: 3,
+  version: 4,
   fish: [
     { id: "wakin-1", shapeId: "wakin", colorId: "beni", tank: 0, bornAt: 0, seed: 11 },
     { id: "ryukin-1", shapeId: "ryukin", colorId: "sakura", tank: 0, bornAt: 0, seed: 27 },
@@ -173,11 +199,16 @@ function randomId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function firstOpenTank(fish: FishRecord[], preferred: number): TankPlace {
+function firstOpenTank(fish: FishRecord[], preferred: number): number | null {
   const countAt = (tank: number) => fish.filter((item) => item.tank === tank).length;
-  if (countAt(preferred) < 10) return preferred;
-  for (let tank = 0; tank < 10; tank += 1) if (countAt(tank) < 10) return tank;
-  return "rest";
+  if (countAt(preferred) < TANK_CAPACITY) return preferred;
+  for (let tank = 0; tank < TANK_COUNT; tank += 1) if (countAt(tank) < TANK_CAPACITY) return tank;
+  return null;
+}
+
+function openTankSlots(fish: FishRecord[]) {
+  const counts = Array.from({ length: TANK_COUNT }, (_, tank) => fish.filter((item) => item.tank === tank).length);
+  return counts.reduce((total, count) => total + Math.max(0, TANK_CAPACITY - count), 0);
 }
 
 function nameIdeas(shapeId: ShapeId, colorId: ColorId) {
@@ -396,7 +427,7 @@ export default function HomePage() {
               name: game.speciesNames[speciesKey(fish)] ?? "なまえのない金魚",
               shape: SHAPES[fish.shapeId].label,
               colorAndPattern: colorLabelFor(fish),
-              location: fish.tank === "rest" ? "おやすみ池" : game.tankNames[fish.tank],
+              location: game.tankNames[fish.tank],
             })),
           }),
         }],
@@ -454,16 +485,18 @@ export default function HomePage() {
     () => game.fish.filter((fish) => fish.tank === game.activeTank),
     [game.fish, game.activeTank],
   );
-  const restFish = useMemo(() => game.fish.filter((fish) => fish.tank === "rest"), [game.fish]);
   const selectedFish = game.fish.find((fish) => fish.id === selectedFishId) ?? activeTankFish[0] ?? game.fish[0];
   const shapeParent = game.fish.find((fish) => fish.id === shapeParentId);
   const colorParent = game.fish.find((fish) => fish.id === colorParentId);
   const allParentsUnlocked = game.breedCount >= BASE_PARENTS.at(-1)!.unlockAt;
   const progressStep = allParentsUnlocked ? 5 : game.breedCount % 5;
   const progressValue = allParentsUnlocked ? 100 : (progressStep / 5) * 100;
+  const nextBreedCount = game.breedCount + 1;
+  const birthSlotsNeeded = BASE_PARENTS.some((parent) => parent.unlockAt === nextBreedCount) ? 2 : 1;
+  const hasBirthSpace = openTankSlots(game.fish) >= birthSlotsNeeded;
 
   const displayName = (fish: FishRecord) => game.speciesNames[speciesKey(fish)] ?? "なまえのない金魚";
-  const placeName = (place: TankPlace) => place === "rest" ? "おやすみ池" : game.tankNames[place];
+  const placeName = (place: TankPlace) => game.tankNames[place];
 
   const goToTank = (tank: number) => {
     const first = game.fish.find((fish) => fish.tank === tank);
@@ -500,10 +533,20 @@ export default function HomePage() {
   const finishBirth = (newFish: FishRecord, chosenName: string, isNewSpecies: boolean) => {
     const key = speciesKey(newFish);
     const cleanName = chosenName.trim() || nameIdeas(newFish.shapeId, newFish.colorId)[0];
-    const destination = firstOpenTank(game.fish, game.activeTank);
-    const child = { ...newFish, tank: destination };
     const nextBreedCount = game.breedCount + 1;
     const unlocking = BASE_PARENTS.find((parent) => parent.unlockAt === nextBreedCount);
+    const requiredSlots = unlocking ? 2 : 1;
+    if (openTankSlots(game.fish) < requiredSlots) {
+      setPendingBirth(null);
+      setNameOpen(false);
+      setBreedPhase("idle");
+      toast.error("すいそうの あきが たりません。金魚を おわかれしてから ためしてね");
+      return;
+    }
+
+    const destination = firstOpenTank(game.fish, game.activeTank);
+    if (destination === null) return;
+    const child = { ...newFish, tank: destination };
     let nextFish = [...game.fish, child];
     const nextNames = { ...game.speciesNames, [key]: cleanName };
     let unlockedName: string | undefined;
@@ -511,6 +554,7 @@ export default function HomePage() {
     if (unlocking) {
       const unlockKey = speciesKey(unlocking);
       const unlockDestination = firstOpenTank(nextFish, game.activeTank);
+      if (unlockDestination === null) return;
       nextFish = [
         ...nextFish,
         {
@@ -546,7 +590,7 @@ export default function HomePage() {
       colorId: phenotype.colorId,
       marking: phenotype.marking,
       genome,
-      tank: "rest",
+      tank: game.activeTank,
       bornAt: Date.now(),
       parents: [shapeParent.id, colorParent.id],
       seed: Math.floor(Math.random() * 997),
@@ -565,6 +609,10 @@ export default function HomePage() {
 
   const startBreeding = () => {
     if (!shapeParent || !colorParent || shapeParent.id === colorParent.id) return;
+    if (!hasBirthSpace) {
+      toast.error("すいそうの あきが たりません。金魚を おわかれしてから ためしてね");
+      return;
+    }
     setBreedPhase("mixing");
     setBirthSummary(null);
     window.setTimeout(prepareBirth, 1900);
@@ -578,7 +626,7 @@ export default function HomePage() {
 
   const moveSelectedFish = (destination: TankPlace) => {
     if (!selectedFish) return;
-    if (typeof destination === "number" && game.fish.filter((fish) => fish.tank === destination).length >= 10) {
+    if (game.fish.filter((fish) => fish.tank === destination).length >= TANK_CAPACITY) {
       toast.error("この水槽は 10ぴきで いっぱいです");
       return;
     }
@@ -771,7 +819,7 @@ export default function HomePage() {
             <p>{placeName(birthSummary.destination)}へ はいりました。</p>
             {birthSummary.unlockedName && <div className="unlock-note"><Sparkles />「{birthSummary.unlockedName}」が おやに つかえるようになった！</div>}
             <div className="result-actions">
-              <Button onClick={() => { if (typeof birthSummary.destination === "number") goToTank(birthSummary.destination); else setView("tanks"); }}><Home />会いにいく</Button>
+              <Button onClick={() => goToTank(birthSummary.destination)}><Home />会いにいく</Button>
               <Button variant="outline" onClick={() => { setBreedPhase("idle"); setBirthSummary(null); }}>もういちど</Button>
             </div>
           </div>
@@ -796,8 +844,8 @@ export default function HomePage() {
             </div>
 
             <div className="breed-action-row">
-              <Button size="lg" className="breed-button" disabled={!shapeParent || !colorParent || breedPhase === "mixing"} onClick={startBreeding}>
-                <Sparkles />{breedPhase === "mixing" ? "まっています…" : "かけあわせる"}
+              <Button size="lg" className="breed-button" disabled={!shapeParent || !colorParent || breedPhase === "mixing" || !hasBirthSpace} onClick={startBreeding}>
+                <Sparkles />{breedPhase === "mixing" ? "まっています…" : !hasBirthSpace ? "すいそうの あきが たりない" : "かけあわせる"}
               </Button>
             </div>
 
@@ -892,10 +940,6 @@ export default function HomePage() {
           );
         })}
       </div>
-      <div className="rest-pond">
-        <div className="rest-copy"><span className="rest-icon"><Waves /></span><div><p className="eyebrow">いっぱいに なっても あんしん</p><h3>おやすみ池</h3><p>ここにいる金魚も、おやに えらべます。</p></div><strong>{restFish.length} ひき</strong></div>
-        {restFish.length > 0 ? <div className="rest-fish-grid">{restFish.map((fish) => <button type="button" key={fish.id} onClick={() => { setSelectedFishId(fish.id); setMoveOpen(true); }}><GoldfishDiagram fish={fish} /><span>{displayName(fish)}</span></button>)}</div> : <p className="rest-empty">いまは だれも いません。</p>}
-      </div>
     </section>
   );
 
@@ -949,7 +993,6 @@ export default function HomePage() {
               const count = game.fish.filter((fish) => fish.tank === tank).length;
               return <button type="button" key={tank} disabled={count >= 10 || selectedFish?.tank === tank} onClick={() => moveSelectedFish(tank)}><span>{tank + 1}</span><strong>{name}</strong><small>{count} / 10 ひき</small></button>;
             })}
-            <button type="button" className="rest-destination" disabled={selectedFish?.tank === "rest"} onClick={() => moveSelectedFish("rest")}><span><Waves /></span><strong>おやすみ池</strong><small>いつでも もどせるよ</small></button>
           </div>
         </DialogContent>
       </Dialog>
