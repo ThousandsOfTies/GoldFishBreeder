@@ -66,6 +66,13 @@ button { font: inherit; }
 .selected-fish { height: clamp(96px, 18dvh, 145px); display: grid; place-items: center; margin: 8px -8px 2px; overflow: hidden; border-bottom: 1px solid rgba(200,245,240,.12); }
 .goldfish-preview-canvas { width: min(190px, 100%); height: 132px; max-width: 100%; filter: drop-shadow(0 12px 13px rgba(0,0,0,.28)); pointer-events: none; }
 .goldfish-preview-canvas canvas { display: block; width: 100% !important; height: 100% !important; outline: none; }
+.fish-panel .selected-fish-interactive { height: auto; display: flex; flex-direction: column; padding-bottom: 10px; }
+.goldfish-preview-canvas.is-interactive { width: 100%; height: clamp(145px, 22dvh, 180px); pointer-events: auto; }
+.goldfish-preview-canvas.is-interactive canvas { touch-action: none; }
+.goldfish-preview-canvas.is-interactive canvas:focus-visible { outline: 2px solid #73e0d4; outline-offset: -3px; border-radius: 12px; }
+.goldfish-view-controls { display: flex; justify-content: center; gap: 6px; }
+.goldfish-view-controls button { min-height: 36px; color: #b8ece5; border: 1px solid rgba(126, 224, 212, .22); border-radius: 10px; background: rgba(3, 29, 40, .45); }
+.goldfish-view-controls button:hover { color: #07313b; background: #8de5da; }
 .goldfish-static-preview-image { display: block; width: 100%; height: 100%; object-fit: contain; }
 .goldfish-snapshot-renderer { position: fixed; left: -10000px; top: 0; width: 240px; height: 150px; opacity: 0; pointer-events: none; }
 .goldfish-snapshot-renderer canvas { display: block; width: 100% !important; height: 100% !important; }

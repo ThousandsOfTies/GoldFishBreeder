@@ -2,7 +2,10 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Minus, Plus, RotateCcw } from "lucide-react";
 import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { Button } from "@/components/ui/button";
 import { appearanceFor, type FishGenome, type Marking } from "@/lib/goldfish-traits";
 
 export type GoldfishShapeId = "wakin" | "ryukin" | "demekin" | "oranda" | "ranchu" | "comet" | "pearl" | "butterfly";
@@ -255,7 +258,7 @@ function chooseAvoidanceDestination(route: SwimState, other: SwimState, seed: nu
   route.avoidUntil = time + 0.52;
 }
 
-function GoldfishModel({ fish, index, total, onSelect, swimmers, preview = false }: { fish: ThreeGoldfish; index: number; total: number; onSelect?: (id: string) => void; swimmers: SwimRegistry; preview?: boolean }) {
+function GoldfishModel({ fish, index, total, onSelect, swimmers, preview = false, observing = false }: { fish: ThreeGoldfish; index: number; total: number; onSelect?: (id: string) => void; swimmers: SwimRegistry; preview?: boolean; observing?: boolean }) {
   const group = useRef<THREE.Group>(null);
   const tail = useRef<THREE.Group>(null);
   const fins = useRef<THREE.Group>(null);
@@ -284,9 +287,9 @@ function GoldfishModel({ fish, index, total, onSelect, swimmers, preview = false
     if (item) {
       const time = clock.getElapsedTime() + phase;
       if (preview) {
-        item.position.set(Math.sin(time * 0.72) * 0.12, Math.sin(time * 1.8) * 0.05, 0);
+        item.position.set(observing ? 0 : Math.sin(time * 0.72) * 0.12, observing ? 0 : Math.sin(time * 1.8) * 0.05, 0);
         item.scale.set(0.8, 0.8, 0.8);
-        item.rotation.z = Math.sin(time * 1.8) * 0.025;
+        item.rotation.z = observing ? 0 : Math.sin(time * 1.8) * 0.025;
       } else {
         if (time >= route.avoidUntil) {
           for (const [otherId, other] of swimmers.current) {
@@ -327,7 +330,12 @@ function GoldfishModel({ fish, index, total, onSelect, swimmers, preview = false
   const eyeSize = style.eyes === "telescope" ? 0.34 : 0.17;
   const eyeX = style.body[0] * 0.68;
   const eyeY = style.body[1] * 0.18;
-  const eyeZ = style.body[2] * 0.91;
+  // 楕円体の頭の表面を基準に、目の根元を少し埋めてつなぐ。
+  const eyeSurfaceZ = style.body[2] * Math.sqrt(1 - 0.68 ** 2 - 0.18 ** 2);
+  const eyeBulgeDepth = eyeSize * 1.08;
+  const eyeBulgeOffset = eyeBulgeDepth * 0.18;
+  const eyeOffset = style.eyes === "telescope" ? eyeBulgeOffset + eyeBulgeDepth * 0.72 : eyeSize * 0.72 * 0.3;
+  const faceDecorationZ = style.body[2] * 0.91;
   return (
     <group ref={group} onClick={() => onSelect?.(fish.id)}>
       <group>
@@ -393,19 +401,22 @@ function GoldfishModel({ fish, index, total, onSelect, swimmers, preview = false
           ))}
         </group>}
 
-        {style.eyes === "telescope" && <mesh position={[eyeX, eyeY, eyeZ * 0.82]} scale={[eyeSize * 1.28, eyeSize * 1.28, eyeSize * 1.08]}>
-          <sphereGeometry args={[1, 16, 12]} />
-          <meshPhysicalMaterial color={palette.base} roughness={0.34} clearcoat={0.58} />
-        </mesh>}
-        <mesh position={[eyeX, eyeY, eyeZ]} scale={[eyeSize, eyeSize, eyeSize * 0.72]}>
-          <sphereGeometry args={[1, 16, 12]} />
-          <meshPhysicalMaterial color="#10191c" roughness={0.18} clearcoat={0.7} clearcoatRoughness={0.12} />
-        </mesh>
-        <mesh position={[eyeX - eyeSize * 0.38, eyeY - eyeSize * 0.7, eyeZ * 1.02]} scale={[0.11, 0.065, 0.02]}>
+        {/* 顔は+X方向。左右の目を奥行き(+Z/-Z)に対称に配置する。 */}
+        {[-1, 1].map((side) => <group key={`eye-${side}`} position={[eyeX, eyeY, side * eyeSurfaceZ]} scale={[1, 1, side]}>
+          {style.eyes === "telescope" && <mesh position={[0, 0, eyeBulgeOffset]} scale={[eyeSize * 1.28, eyeSize * 1.28, eyeBulgeDepth]}>
+            <sphereGeometry args={[1, 16, 12]} />
+            <meshPhysicalMaterial color={palette.base} roughness={0.34} clearcoat={0.58} />
+          </mesh>}
+          <mesh position={[0, 0, eyeOffset]} scale={[eyeSize, eyeSize, eyeSize * 0.72]}>
+            <sphereGeometry args={[1, 16, 12]} />
+            <meshPhysicalMaterial color="#10191c" roughness={0.18} clearcoat={0.7} clearcoatRoughness={0.12} />
+          </mesh>
+        </group>)}
+        <mesh position={[eyeX - eyeSize * 0.38, eyeY - eyeSize * 0.7, faceDecorationZ * 1.02]} scale={[0.11, 0.065, 0.02]}>
           <circleGeometry args={[1, 16]} />
           <meshBasicMaterial color="#ff8f9e" transparent opacity={0.42} />
         </mesh>
-        <mesh position={[eyeX + eyeSize * 0.48, eyeY - eyeSize * 0.78, eyeZ * 1.04]} scale={[0.075, 0.075, 0.02]}>
+        <mesh position={[eyeX + eyeSize * 0.48, eyeY - eyeSize * 0.78, faceDecorationZ * 1.04]} scale={[0.075, 0.075, 0.02]}>
           <torusGeometry args={[1, 0.18, 6, 12, Math.PI]} />
           <meshBasicMaterial color="#713e3d" transparent opacity={0.72} />
         </mesh>
@@ -458,31 +469,134 @@ function GoldfishPreviewFallback({ fish }: { fish: ThreeGoldfish }) {
       {color.pattern !== "plain" && <ellipse cx="114" cy="42" rx={bodyWidth * 0.48} ry={bodyHeight * 0.5} fill={color.accent} opacity="0.84" />}
       {shape.hood && <circle cx="128" cy="31" r="13" fill={color.accent} />}
       <circle cx="131" cy="42" r={eyeRadius} fill="#070a0c" />
-      {shape.eyes === "telescope" && <circle cx="126" cy="60" r={eyeRadius} fill="#070a0c" />}
       {shape.dorsal && <path d="M91 22 Q104 4 118 21" fill={color.accent} opacity="0.8" />}
       <path d="M101 76 Q110 88 124 76" fill={color.accent} opacity="0.72" />
     </svg>
   );
 }
 
-export function GoldfishPreview3D({ fish, animate = true }: { fish: ThreeGoldfish; animate?: boolean }) {
+type InspectionActions = { zoomIn: () => void; zoomOut: () => void; reset: () => void };
+
+function GoldfishInspectionControls({ fish, onReady }: { fish: ThreeGoldfish; onReady: (actions: InspectionActions | null) => void }) {
+  const { camera, gl, size, invalidate } = useThree();
+  const controlsRef = useRef<OrbitControls | null>(null);
+
+  useEffect(() => {
+    if (!(camera instanceof THREE.PerspectiveCamera) || !size.width || !size.height) return;
+    const style = styleFor(fish);
+    // 胴だけでなく、揺れる尾・背びれ・出目も含めて拡大限界を決める。
+    const bounds = new THREE.Box3(
+      new THREE.Vector3(-style.body[0] * 0.84 - style.tail[0] * 1.45 - 0.2, -Math.max(style.body[1] + 0.43, style.tail[1] * 1.5), -style.body[2] - 0.5),
+      new THREE.Vector3(Math.max(style.body[0], style.body[0] * 0.68 + 0.5), Math.max(style.body[1] * 0.78 + (style.dorsal ? 0.7 : 0.3), style.tail[1] * 1.5), style.body[2] + 0.5),
+    );
+    bounds.min.multiplyScalar(0.8);
+    bounds.max.multiplyScalar(0.8);
+    const sphere = bounds.getBoundingSphere(new THREE.Sphere());
+    const verticalHalfFov = THREE.MathUtils.degToRad(camera.fov / 2);
+    const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * size.width / size.height);
+    const minimumDistance = sphere.radius * 1.04 / Math.sin(Math.min(verticalHalfFov, horizontalHalfFov));
+
+    camera.position.copy(sphere.center).add(new THREE.Vector3(0, 0, minimumDistance * 1.22));
+    const controls = new OrbitControls(camera, gl.domElement);
+    controls.target.copy(sphere.center);
+    controls.minAzimuthAngle = -Math.PI / 3;
+    controls.maxAzimuthAngle = Math.PI / 3;
+    controls.minPolarAngle = Math.PI / 2 - THREE.MathUtils.degToRad(25);
+    controls.maxPolarAngle = Math.PI / 2 + THREE.MathUtils.degToRad(25);
+    controls.minDistance = minimumDistance;
+    controls.maxDistance = minimumDistance * 1.85;
+    controls.enablePan = false;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.12;
+    controls.rotateSpeed = 0.55;
+    controls.zoomSpeed = 0.8;
+    controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: null };
+    controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_ROTATE };
+    controls.cursorStyle = "grab";
+    controls.update();
+    controls.saveState();
+    controlsRef.current = controls;
+
+    const reset = () => {
+      // 操作直後の慣性も止めてから、保存した角度・大きさへ戻す。
+      controls.enableDamping = false;
+      controls.update();
+      controls.reset();
+      controls.enableDamping = true;
+    };
+    const actions = {
+      zoomIn: () => controls.dollyIn(0.85),
+      zoomOut: () => controls.dollyOut(0.85),
+      reset,
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      const step = THREE.MathUtils.degToRad(15);
+      switch (event.key) {
+        case "ArrowLeft": controls.rotateLeft(step); break;
+        case "ArrowRight": controls.rotateLeft(-step); break;
+        case "ArrowUp": controls.rotateUp(step); break;
+        case "ArrowDown": controls.rotateUp(-step); break;
+        case "+": case "=": actions.zoomIn(); break;
+        case "-": actions.zoomOut(); break;
+        case "Home": reset(); break;
+        default: return;
+      }
+      event.preventDefault();
+    };
+    const canvas = gl.domElement;
+    canvas.tabIndex = 0;
+    canvas.setAttribute("aria-label", "金魚の3D表示。ドラッグや矢印キーで回転、ホイールやプラス・マイナスキーで拡大縮小。ダブルクリックやHomeキーで戻す。");
+    canvas.title = "ドラッグで回転・ホイールで拡大縮小・ダブルクリックでもどす";
+    const onChange = () => invalidate();
+    canvas.addEventListener("dblclick", reset);
+    canvas.addEventListener("keydown", onKeyDown);
+    controls.addEventListener("change", onChange);
+    onReady(actions);
+    invalidate();
+
+    return () => {
+      canvas.removeEventListener("dblclick", reset);
+      canvas.removeEventListener("keydown", onKeyDown);
+      controls.removeEventListener("change", onChange);
+      controls.dispose();
+      controlsRef.current = null;
+      onReady(null);
+    };
+  }, [camera, gl, size.width, size.height, fish, invalidate, onReady]);
+
+  useFrame((_, delta) => controlsRef.current?.update(delta));
+  return null;
+}
+
+export function GoldfishPreview3D({ fish, animate = true, interactive = false }: { fish: ThreeGoldfish; animate?: boolean; interactive?: boolean }) {
   const swimmers = useRef(new Map<string, SwimState>());
+  const inspection = useRef<InspectionActions | null>(null);
+  const onInspectionReady = useCallback((actions: InspectionActions | null) => { inspection.current = actions; }, []);
+  const animated = animate || interactive;
 
   return (
-    <div className="goldfish-preview-canvas" aria-hidden="true">
-      <Canvas
-        camera={{ position: [0, 0, 7.7], fov: 32 }}
-        dpr={animate ? [1, 1.5] : 1}
-        frameloop={animate ? "always" : "demand"}
-        gl={{ alpha: true, antialias: animate, powerPreference: animate ? "high-performance" : "low-power" }}
-        fallback={<GoldfishPreviewFallback fish={fish} />}
-      >
-        <ambientLight intensity={1.35} color="#c8fff5" />
-        <directionalLight position={[2, 4, 5]} intensity={2.1} color="#fff5d7" />
-        <pointLight position={[-3, 1, 4]} intensity={1.6} color="#6ee8ff" distance={10} />
-        <GoldfishModel fish={fish} index={0} total={1} swimmers={swimmers} preview />
-      </Canvas>
-    </div>
+    <>
+      <div className={`goldfish-preview-canvas ${interactive ? "is-interactive" : ""}`} aria-hidden={interactive ? undefined : true}>
+        <Canvas
+          camera={{ position: [0, 0, 7.7], fov: 32 }}
+          dpr={animated ? [1, 1.5] : 1}
+          frameloop={animated ? "always" : "demand"}
+          gl={{ alpha: true, antialias: animated, powerPreference: animated ? "high-performance" : "low-power" }}
+          fallback={<GoldfishPreviewFallback fish={fish} />}
+        >
+          <ambientLight intensity={1.35} color="#c8fff5" />
+          <directionalLight position={[2, 4, 5]} intensity={2.1} color="#fff5d7" />
+          <pointLight position={[-3, 1, 4]} intensity={1.6} color="#6ee8ff" distance={10} />
+          <GoldfishModel fish={fish} index={0} total={1} swimmers={swimmers} preview observing={interactive} />
+          {interactive && <GoldfishInspectionControls fish={fish} onReady={onInspectionReady} />}
+        </Canvas>
+      </div>
+      {interactive && <div className="goldfish-view-controls" role="group" aria-label="金魚の表示を操作">
+        <Button type="button" variant="ghost" size="icon" aria-label="金魚を小さく表示する" title="小さくする" onClick={() => inspection.current?.zoomOut()}><Minus /></Button>
+        <Button type="button" variant="ghost" size="icon" aria-label="金魚を大きく表示する" title="大きくする" onClick={() => inspection.current?.zoomIn()}><Plus /></Button>
+        <Button type="button" variant="ghost" size="sm" aria-label="金魚の角度と大きさをもどす" onClick={() => inspection.current?.reset()}><RotateCcw />もどす</Button>
+      </div>}
+    </>
   );
 }
 

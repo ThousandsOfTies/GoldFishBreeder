@@ -776,7 +776,7 @@ export default function HomePage() {
         {selectedFish && selectedFish.tank === game.activeTank ? (
           <>
             <p className="eyebrow">この金魚</p>
-            <div className="selected-fish"><GoldfishPreview3D fish={selectedFish} /></div>
+            <div className="selected-fish selected-fish-interactive"><GoldfishPreview3D key={selectedFish.id} fish={selectedFish} interactive /></div>
             <h2>{displayName(selectedFish)}</h2>
             <p className="species-label">{game.fish.filter((fish) => speciesKey(fish) === speciesKey(selectedFish)).length}ひき いるよ</p>
             <dl>
